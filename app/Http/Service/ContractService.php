@@ -107,10 +107,11 @@ class ContractService
     }
     public function update_contract_status()
     {
-        $contract=Contract::select('id','contract_no','status_code','status_name')->get();
+        $contract=Contract::where('status_code','03')->orWhere('status_code','08')->select('id','contract_no','status_code','status_name')->get();
+
         foreach($contract as $data)
         {
-            if($data['status_code']=='03'||$data['status_code']=='08'){
+            //if($data['status_code']=='03'||$data['status_code']=='08'){
                 $res = curl('http://114.55.32.144:666/productmgr/QueryStatusRAPI',
                     array('userid' => 'user@api', 'password' => 'password@api','Code'=>'YG-201904190264'),
                     true);
@@ -122,7 +123,7 @@ class ContractService
                     $update->status_name = $res->Data->StatusName;
                     $update->save();
                 }
-            }
+            //}
 
 
 
