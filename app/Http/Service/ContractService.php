@@ -110,17 +110,21 @@ class ContractService
         $contract=Contract::select('id','contract_no','status_code','status_name')->get();
         foreach($contract as $data)
         {
-            $res = curl('http://114.55.32.144:666/productmgr/QueryStatusRAPI',
-                array('userid' => 'user@api', 'password' => 'password@api','Code'=>'YG-201904190264'),
-                true);
-             if(!isset($res->Data->StatusCode))
-            $res=json_decode($res);
-            if(isset($res->Data->StatusCode) && isset($res->Data->StatusName)) {
-                $update = Contract::find($data->id);
-                $update->status_code = $res->Data->StatusCode;
-                $update->status_name = $res->Data->StatusName;
-                $update->save();
+            if($data['status_code']=='03'||$data['status_code']=='08'){
+                $res = curl('http://114.55.32.144:666/productmgr/QueryStatusRAPI',
+                    array('userid' => 'user@api', 'password' => 'password@api','Code'=>'YG-201904190264'),
+                    true);
+                if(!isset($res->Data->StatusCode))
+                    $res=json_decode($res);
+                if(isset($res->Data->StatusCode) && isset($res->Data->StatusName)) {
+                    $update = Contract::find($data->id);
+                    $update->status_code = $res->Data->StatusCode;
+                    $update->status_name = $res->Data->StatusName;
+                    $update->save();
+                }
             }
+
+
 
         }
         return ['status'=>1,'message'=>'更新成功'];
