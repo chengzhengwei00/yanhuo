@@ -19,6 +19,8 @@ Route::group(['prefix' => 'v1'], function(){
         return 'Hello, Welcome to LaravelAcademy.org';
     });
     Route::get('swagger/json', 'SwaggerController@getJson');
+	Route::get('contracts/get-contracts-for-api', 'Admin\ContractController@getContractsForApi');//获取验货标准接口
+    Route::get('contracts/update-contracts-status', 'Admin\ContractController@geUpdateContractStatus');//获取验货标准接口
 
 
 });
@@ -40,8 +42,7 @@ Route::group(['prefix' => 'v1','middleware' => 'auth:api'], function(){
     Route::get('role/show-role', 'Admin\RoleController@getShowRole');//根据id部门岗位展示
     Route::apiResource('role', 'Admin\RoleController');
     //合同类
-    Route::get('contracts/get-contracts-for-api', 'Admin\ContractController@getContractsForApi');//获取验货标准接口
-    Route::get('contracts/update-contracts-status', 'Admin\ContractController@geUpdateContractStatus');//获取验货标准接口
+
 
     Route::apiResource('standards', 'Admin\StandardController');
     Route::apiResource('contracts', 'Admin\ContractController');
