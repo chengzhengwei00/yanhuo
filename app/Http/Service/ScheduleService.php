@@ -414,7 +414,6 @@ class ScheduleService
         $contract_info=Contract::find($contract_id);
         unset($contract_info->json_data);
         $now_to_sign_week=round((time()-strtotime($contract_info->sign_time))/3600/24/7);
-        //return $now_to_sign_week;
         $week=[];
         for($i=1;$i<=$now_to_sign_week;$i++)
         {
@@ -442,7 +441,13 @@ class ScheduleService
             );
 
         }
-        $UserSchedule=UserSchedule::where('contract_id',$contract_id)->groupBy(DB::raw("date_format(created_at,'%Y-%m-%d')"))->select(DB::raw('*,max(id) as id'))->get();
+        //$UserSchedule=UserSchedule::where('contract_id',$contract_id)->groupBy(DB::raw("date_format(created_at,'%Y-%m-%d')"))->select(DB::raw('*,max(id) as id'))->get();
+
+
+
+        //$UserSchedule=UserSchedule::with('user')->where('contract_id',$contract_id)->groupBy(DB::raw("date_format(created_at,'%Y-%m-%d')"))->select(DB::raw('user_id,max(id) as id'))->get();
+        $idMax=UserSchedule::where('contract_id',$contract_id)->groupBy(DB::raw("date_format(created_at,'%Y-%m-%d')"))->select(DB::raw('max(id) as id'))->get();
+        $UserSchedule=UserSchedule::with('user')->whereIn('id',$idMax)->get();
         $total_count=Schedule::all()->count();
         $result=[];
         foreach($UserSchedule as $item)
@@ -451,12 +456,6 @@ class ScheduleService
             $created_at=strtotime($item->created_at);
             $sign_time=strtotime($item->Contract->sign_time);
             $to_week=round(($created_at-$sign_time)/3600/24/7) ;
-//            echo $item->created_at;
-//            echo 'ssss';
-//            echo $item->Contract->sign_time;
-//            echo 'vvvv';
-//            echo $to_week;
-//            die;
             unset($item->Contract->json_data);
             $item->contract=$item->Contract;
 
@@ -466,6 +465,7 @@ class ScheduleService
                 if($c->status==1){$i++;}
             }
             $item->i=$to_week;
+            $item->username=$item->User->name;
             $item->quantity=$i;
             $item->total_count=$total_count;
             $item->rate=$item->quantity/$total_count;

@@ -11,4 +11,9 @@ class UserSchedule extends Model
     {
         return $this->belongsTo('App\Http\Model\Contract');
     }
+
+
+    function user(){
+        return $this->belongsTo('App\User');
+    }
 }
