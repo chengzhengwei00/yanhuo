@@ -113,8 +113,9 @@ class ContractService
         {
             //if($data['status_code']=='03'||$data['status_code']=='08'){
                 $res = curl('http://114.55.32.144:666/productmgr/QueryStatusRAPI',
-                    array('userid' => 'user@api', 'password' => 'password@api','Code'=>'YG-201904190264'),
+                    array('userid' => 'user@api', 'password' => 'password@api','Code'=>$data->contract_no),
                     true);
+					//if($data->id==80)return $res;
                 if(!isset($res->Data->StatusCode))
                     $res=json_decode($res);
                 if(isset($res->Data->StatusCode) && isset($res->Data->StatusName)) {
