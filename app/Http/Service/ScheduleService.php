@@ -415,8 +415,16 @@ class ScheduleService
         unset($contract_info->json_data);
         $now_to_sign_week=round((time()-strtotime($contract_info->sign_time))/3600/24/7);
         $week=[];
-        for($i=1;$i<=$now_to_sign_week;$i++)
+        for($i=1;$i<=$now_to_sign_week+1;$i++)
         {
+			if(date('w',strtotime($contract_info->sign_time))==1)
+			{
+				$week_Monday=date('Y-m-d',strtotime("$i Monday", strtotime($contract_info->sign_time)));
+				$week_Sunday=date('Y-m-d',strtotime("$i Sunday", strtotime($contract_info->sign_time)));
+			}else{
+				$week_Monday=date('Y-m-d',strtotime("$i Monday", strtotime($contract_info->sign_time)));
+				$week_Sunday=date('Y-m-d',strtotime(($i+1)." Sunday", strtotime($contract_info->sign_time)));
+			}
             $week[]=array(
                 'i'=>$i,
                 'id'=>'',
@@ -435,8 +443,8 @@ class ScheduleService
                 'to_day'=>'',
                 'plan_week'=>'',
                 'plan_day'=>'',
-                'week_Monday'=>date('Y-m-d',strtotime("$i Monday", strtotime($contract_info->sign_time))),
-                'week_Sunday'=>date('Y-m-d',strtotime(($i+1)." Sunday", strtotime($contract_info->sign_time))),
+                'week_Monday'=>$week_Monday,
+                'week_Sunday'=>$week_Sunday,
                 'sign_time'=>$contract_info->sign_time,
             );
 
@@ -473,17 +481,34 @@ class ScheduleService
             $item->to_day=DifferDay($item->Contract->sign_time,time());
             $item->plan_week=DifferWeek($item->Contract->plan_delivery_time,time());
             $item->plan_day=DifferDay($item->Contract->plan_delivery_time,time());
-            $item->week_Monday=date('Y-m-d',strtotime(($to_week+1)." Monday", strtotime($item->Contract->sign_time)));
-            $item->week_Sunday=date('Y-m-d',strtotime(($to_week+2)." Sunday", strtotime($item->Contract->sign_time)));
+			// $item->week_Monday=>date('Y-m-d',strtotime("$to_week Monday", strtotime($item->Contract->sign_time)));
+            // $item->week_Sunday=>date('Y-m-d',strtotime(($to_week+1)." Sunday", strtotime($item->Contract->sign_time)));
             $item->sign_time=$item->Contract->sign_time;
             $result[$to_week]=$item;
 
         }
-        $result=($result+$week);
-        ksort($result);
+        // $result=($result+$week);
+        // ksort($result);
+		foreach($week as &$w)
+		{
+			foreach($result as $r)
+			{
+				if(strtotime($r->updated_at)>strtotime($w['week_Monday']) && strtotime($r->updated_at)<strtotime($w['week_Sunday']))
+				{
+					$week_Monday=$w['week_Monday'];
+					$week_Sunday=$w['week_Sunday'];
+					$w=$r;
+					$w['week_Monday']=$week_Monday;
+					$w['week_Sunday']=$week_Sunday;
+
+				}
+				
+			}
+			if(strtotime($w['week_Monday'])>time())array_pop($week);
+		}
 
 
-         return ['status' => 0, 'message' => '获取成功','data'=>array_values($result)];
+         return ['status' => 0, 'message' => '获取成功','data'=>array_values($week)];
     }
     //历史记录详情
     public function history_view()
