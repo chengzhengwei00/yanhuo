@@ -62,7 +62,7 @@ class ScheduleService
 
 
         $data=$data->paginate(10);
-        $total_count=Schedule::all()->count();
+        //$total_count=Schedule::all()->count();
         foreach ($data as &$item)
         {
             $repeat_record=$this->repeat_record($item->id);
@@ -479,7 +479,7 @@ class ScheduleService
         //$UserSchedule=UserSchedule::with('user')->where('contract_id',$contract_id)->groupBy(DB::raw("date_format(created_at,'%Y-%m-%d')"))->select(DB::raw('user_id,max(id) as id'))->get();
         $idMax=UserSchedule::where('contract_id',$contract_id)->groupBy(DB::raw("date_format(created_at,'%Y-%m-%d')"))->select(DB::raw('max(id) as id'))->get();
         $UserSchedule=UserSchedule::with('user')->whereIn('id',$idMax)->get();
-        $total_count=Schedule::all()->count();
+        //$total_count=Schedule::all()->count();
         $result=[];
         foreach($UserSchedule as $item)
         {
@@ -498,6 +498,20 @@ class ScheduleService
             $item->i=$to_week;
             $item->username=$item->User->name;
             $item->quantity=$i;
+
+            $contractScheduleService=new contractScheduleService($this->request,$this->response);
+            $Schedule=$contractScheduleService->getScheduleIsNeed($contract_id);
+            $total_count=0;
+            foreach ($Schedule as $ScheduleItem) {
+                if(isset($ScheduleItem['is_need'])&&$ScheduleItem['is_need']==1){
+                    $total_count++;
+                }
+            }
+            if($total_count==0){
+                $total_count=count($Schedule);
+            }
+
+
             $item->total_count=$total_count;
             $item->rate=$item->quantity/$total_count;
             $item->to_week=DifferWeek($item->Contract->sign_time,time());
