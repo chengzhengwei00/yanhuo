@@ -81,6 +81,18 @@ class ScheduleService
             }else{
                 $item->quantity=0;
             }
+
+            $contractScheduleService=new contractScheduleService($this->request,$this->response);
+            $Schedule=$contractScheduleService->getScheduleIsNeed($item->id);
+            $total_count=0;
+            foreach ($Schedule as $ScheduleItem) {
+                if(isset($ScheduleItem['is_need'])&&$ScheduleItem['is_need']==1){
+                    $total_count++;
+                }
+            }
+            if($total_count==0){
+                $total_count=count($Schedule);
+            }
             $item->total_count=$total_count;
             $item->rate=$item->quantity/$total_count;
             $item->to_week=DifferWeek($item->sign_time,time());
