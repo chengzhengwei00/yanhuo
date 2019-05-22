@@ -37,7 +37,7 @@ class ContractScheduleService
 
 
     public function getScheduleIsNeed($contract_id){
-        $scheduleService=new scheduleService($this->request,$this->response);
+        $scheduleService=new ScheduleService($this->request,$this->response);
         $scheduleListRes=$scheduleService->list();
         $scheduleList=$scheduleListRes['data'];
 

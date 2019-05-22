@@ -82,7 +82,7 @@ class ScheduleService
                 $item->quantity=0;
             }
 
-            $contractScheduleService=new contractScheduleService($this->request,$this->response);
+            $contractScheduleService=new ContractScheduleService($this->request,$this->response);
             $Schedule=$contractScheduleService->getScheduleIsNeed($item->id);
             $total_count=0;
             foreach ($Schedule as $ScheduleItem) {
@@ -266,7 +266,7 @@ class ScheduleService
         }
 
         //$Schedule = Schedule::all();
-        $contractScheduleService=new contractScheduleService($this->request,$this->response);
+        $contractScheduleService=new ContractScheduleService($this->request,$this->response);
         $Schedule=$contractScheduleService->getScheduleIsNeed($contract_id);
         //return $Schedule;
         $newSchedule=array();
@@ -499,7 +499,7 @@ class ScheduleService
             $item->username=$item->User->name;
             $item->quantity=$i;
 
-            $contractScheduleService=new contractScheduleService($this->request,$this->response);
+            $contractScheduleService=new ContractScheduleService($this->request,$this->response);
             $Schedule=$contractScheduleService->getScheduleIsNeed($contract_id);
             $total_count=0;
             foreach ($Schedule as $ScheduleItem) {
