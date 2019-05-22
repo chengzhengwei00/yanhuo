@@ -105,7 +105,12 @@ function DifferWeek($from,$to)
     if(!is_numeric($to)){
         $to=strtotime($to);
     }
-    return ($to-$from)<0 ? 0:ceil(($to-$from)/(7*3600*24));
+    if(($to-$from)<0){
+        return '-'.ceil(($from-$to)/(7*3600*24));
+    }else{
+        return ceil(($to-$from)/(7*3600*24));
+    }
+
 }
 function DifferDay($from,$to)
 {
@@ -115,7 +120,12 @@ function DifferDay($from,$to)
     if(!is_numeric($to)){
         $to=strtotime($to);
     }
-    return ($to-$from)<0 ?0:ceil(($to-$from)/(3600*24));
+
+    if(($to-$from)<0){
+        return '-'.ceil(($from-$to)/(3600*24));
+    }else{
+        return ceil(($to-$from)/(3600*24));
+    }
 }
 function str_date($date)
 {

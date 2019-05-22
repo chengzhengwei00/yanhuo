@@ -253,20 +253,28 @@ class ScheduleService
             $created_at=$created_at+$new_array;
         }
 
-        $Schedule = Schedule::all();
+        //$Schedule = Schedule::all();
+        $contractScheduleService=new contractScheduleService($this->request,$this->response);
+        $Schedule=$contractScheduleService->getScheduleIsNeed($contract_id);
+        //return $Schedule;
+        $newSchedule=array();
         if($UserSchedule) {
-            foreach ($Schedule as $data) {
-                $status_array = (array)json_decode($UserSchedule->status);
-                $data->status=0;
-                foreach($status_array as $item){
-                    if (isset($item->schedule_id) && $item->schedule_id==$data->id) {
-                        $data->status = $item->status;
-                        $data->change_time = $item->change_time;
-                        $data->update_time=isset($new_array1[$item->schedule_id])?$created_at[$item->schedule_id]:'';
-                        $data->is_need = $item->is_need;
-                        $data->show_photo = isset($photo_array[$item->schedule_id])?$photo_array[$item->schedule_id]:[];
+            foreach ($Schedule as $Schedulekey=> $data) {
+                if($data['is_need']==1){
+                    $status_array = (array)json_decode($UserSchedule->status);
+                    $data->status=0;
+                    foreach($status_array as $item){
+                        if (isset($item->schedule_id) && $item->schedule_id==$data->id) {
+                            $data->status = $item->status;
+                            $data->change_time = $item->change_time;
+                            $data->update_time=isset($new_array1[$item->schedule_id])?$created_at[$item->schedule_id]:'';
+                            $data->is_need = $item->is_need;
+                            $data->show_photo = isset($photo_array[$item->schedule_id])?$photo_array[$item->schedule_id]:[];
+                        }
                     }
+                    $newSchedule[$Schedulekey]=$data;
                 }
+
             }
 
             if(isset($UserSchedule->sku_schedule)&&!empty($UserSchedule->sku_schedule)){
@@ -293,16 +301,19 @@ class ScheduleService
             }
 
             $UserSchedule->sku_list=$sku_list;
-            $UserSchedule->schedule = $Schedule;
+            $UserSchedule->schedule = array_values($newSchedule);
             return ['status' => 1, 'message' => '获取成功', 'data' => $UserSchedule];
         }else{
             $boy = new \stdClass();
             $boy->contract_id=$contract_id;
             $result=[];
-            foreach($Schedule as $item)
+            foreach($Schedule as  $Schedulekey => $item)
             {
-                $item->status=0;
-                $result[]=$item;
+                if($item['is_need']==1){
+                    $item->status=0;
+                    $result[]=$item;
+                }
+
             }
 
 

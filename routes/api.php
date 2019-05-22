@@ -92,6 +92,8 @@ Route::group(['prefix' => 'v1','middleware' => 'auth:api'], function(){
     Route::post('schedule/post-inspection-department', 'Admin\ScheduleController@postPostInspectionDepartment');//提交质检部
     Route::get('schedule/apply-department-list', 'Admin\ScheduleController@getApplyDepartmentList');//申请验货list
     Route::post('schedule/delay-track', 'Admin\ScheduleController@postDelayTrack');//延迟跟踪
+    Route::get('schedule/schedule-isneed', 'Admin\ScheduleController@getScheduleIsNeed');//延迟跟踪
+    Route::post('schedule/update_schedule-isneed', 'Admin\ScheduleController@updateScheduleIsNeed');//延迟跟踪
 
     Route::apiResource('schedule', 'Admin\ScheduleController');
     //上传文件

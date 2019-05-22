@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Model\ContractSchedule;
 use Illuminate\Http\Request;
 use App\Http\Model\Contract;
 use App\Http\Model\Standard;
 use Illuminate\Support\Facades\DB;
 use App\Http\Service\ScheduleService;
+use App\Http\Service\ContractScheduleService;
 
 class ScheduleController extends Controller
 {
@@ -166,6 +168,67 @@ class ScheduleController extends Controller
     {
         return $this->scheduleService->delay_track();
     }
+
+
+    //展示合同对schedule的需求状况
+    public function getScheduleIsNeed(ContractScheduleService $contractScheduleService){
+        $contract_id=$this->request->get('contract_id');
+        return $contractScheduleService->getScheduleIsNeed($contract_id);
+
+        //获得所有schedule
+//        $scheduleListRes=$this->scheduleService->list();
+//        $scheduleList=$scheduleListRes['data'];
+//
+//        //获得当前合同有需求的schedule列表
+//        $contract_id=$this->request->get('contract_id');
+//        $contractScheduleDataRes=$contractScheduleService->getSchedulesByContract($contract_id);
+////return $contractScheduleDataRes;
+//        $scheduleListNew=$scheduleList;
+//        if($contractScheduleDataRes&&$contractScheduleDataRes['data']){
+//
+//            foreach ($contractScheduleDataRes['data'] as $item) {
+//                foreach ($scheduleList as $scheduleKey=> $scheduleItem) {
+//                   //$scheduleListNew[$scheduleKey]['is_need']=0;
+//                   if($item['schedule_id']==$scheduleItem['id']){
+//                       $scheduleListNew[$scheduleKey]['is_need']=1;
+//                       continue;
+//                   }
+//                }
+//            }
+//
+//        }
+//        return $scheduleListNew;
+
+
+    }
+
+    //修改合同对schedule的需求状况
+    public function updateScheduleIsNeed(ContractScheduleService $contractScheduleService){
+        $contract_id=$this->request->post('contract_id');
+        $need_params=$this->request->post('need_params');
+
+//        $contract_id=31;
+//        $need_params=array(
+//            array(
+//                'is_need'=>1,
+//                'schedule_id'=>2
+//            ),
+//            array(
+//                'is_need'=>1,
+//                'schedule_id'=>3
+//            ),
+//            array(
+//                'is_need'=>0,
+//                'schedule_id'=>4
+//            )
+//        );
+        $res=$contractScheduleService->updateScheduleIsNeed($contract_id,$need_params);
+        return $res;
+    }
+
+
+
+
 
 
 
