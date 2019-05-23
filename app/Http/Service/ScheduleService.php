@@ -89,6 +89,9 @@ class ScheduleService
                 if(isset($ScheduleItem['is_need'])&&$ScheduleItem['is_need']==1){
                     $total_count++;
                 }
+                if(isset($ScheduleItem['is_must'])&&$ScheduleItem['is_must']==1){
+                    $total_count++;
+                }
             }
             if($total_count==0){
                 $total_count=count($Schedule);
@@ -527,6 +530,9 @@ class ScheduleService
             $total_count=0;
             foreach ($Schedule as $ScheduleItem) {
                 if(isset($ScheduleItem['is_need'])&&$ScheduleItem['is_need']==1){
+                    $total_count++;
+                }
+                if(isset($ScheduleItem['is_must'])&&$ScheduleItem['is_must']==1){
                     $total_count++;
                 }
             }
