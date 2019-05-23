@@ -3,6 +3,7 @@
 namespace App\Http\Service;
 
 use App\Http\Model\Contract;
+use App\Http\Model\ContractSchedule;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Model\User;
@@ -281,6 +282,16 @@ class ScheduleService
         }
 
         //$Schedule = Schedule::all();
+
+//        $scheduleService=new ScheduleService($this->request,$this->response);
+//        $scheduleListRes=$scheduleService->list();
+        $contractSchedule=new ContractScheduleService($this->request,$this->response);
+        $contractScheduleList=$contractSchedule->getSchedulesByContract($contract_id);
+        //return $contractScheduleList['data'];
+        if(isset($contractScheduleList['data'])&&count($contractScheduleList['data'])==0){
+            return ['status' => 1, 'message' => '请选择排除项','data'=>array('schedule'=>[],'sku_list'=>[])];
+        }
+
         $contractScheduleService=new ContractScheduleService($this->request,$this->response);
         $Schedule=$contractScheduleService->getScheduleIsNeed($contract_id);
 
