@@ -218,6 +218,18 @@ class ScheduleService
     {
         return ['status'=>1,'message'=>'获取成功','data'=>Schedule::all()];
     }
+
+    //获得不是必须的状态列表
+    public function listIsMust()
+    {
+        return ['status'=>1,'message'=>'获取成功','data'=>Schedule::where('is_must',1)->get()];
+    }
+
+    //获得不是必须的状态列表
+    public function listIsSelect()
+    {
+        return ['status'=>1,'message'=>'获取成功','data'=>Schedule::where('is_must',0)->get()];
+    }
     //展示订单进度状态
     public function view($contract_id)
     {
@@ -268,11 +280,22 @@ class ScheduleService
         //$Schedule = Schedule::all();
         $contractScheduleService=new ContractScheduleService($this->request,$this->response);
         $Schedule=$contractScheduleService->getScheduleIsNeed($contract_id);
+
+
+//        $scheduleService=new ScheduleService($this->request,$this->response);
+//        $scheduleListRes=$scheduleService->listIsMust();
+        //return $Schedule;
+
+
+
+        //$scheduleList=$scheduleListRes['data'];
+        //$Schedule=array_merge($scheduleList,$Schedule);
+
         //return $Schedule;
         $newSchedule=array();
         if($UserSchedule) {
             foreach ($Schedule as $Schedulekey=> $data) {
-                if($data['is_need']==1){
+                if($data['is_need']==1||$data['is_must']==1){
                     $status_array = (array)json_decode($UserSchedule->status);
                     $data->status=0;
                     foreach($status_array as $item){
@@ -321,7 +344,7 @@ class ScheduleService
             $result=[];
             foreach($Schedule as  $Schedulekey => $item)
             {
-                if($item['is_need']==1){
+                if($item['is_need']==1||$item['is_must']==1){
                     $item->status=0;
                     $result[]=$item;
                 }

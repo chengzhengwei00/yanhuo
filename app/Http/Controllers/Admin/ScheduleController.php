@@ -173,7 +173,7 @@ class ScheduleController extends Controller
     //展示合同对schedule的需求状况
     public function getScheduleIsNeed(ContractScheduleService $contractScheduleService){
         $contract_id=$this->request->get('contract_id');
-        return $contractScheduleService->getScheduleIsNeed($contract_id);
+        return $contractScheduleService->getScheduleIsNeedSelect($contract_id);
 
         //获得所有schedule
 //        $scheduleListRes=$this->scheduleService->list();
