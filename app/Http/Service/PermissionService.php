@@ -64,10 +64,6 @@ class PermissionsService
             $user_id = $this->request->input('user_id');
             $permission_id_array = $this->request->input('permission_id');
             $this->delete_user_permission($user_id);
-            if(empty($permission_id_array)){
-                return ['status'=>1,'message'=>'分配成功'];
-            }
-            //print_r($this->request->input('permission_id'));die;
             foreach ((array)$permission_id_array as $permission_id) {
                 $user_has_permission = new User_has_permission();
                 $user_has_permission->user_id = $user_id;
@@ -85,7 +81,9 @@ class PermissionsService
     //删除用户权限
     public function delete_user_permission($user_id)
     {
+		
 		$user_has_permission=User_has_permission::where('user_id',$user_id)->delete();
+
 		if($user_has_permission){
             return ['status'=>1,'message'=>'删除成功'];
         }else{
@@ -251,6 +249,7 @@ class PermissionsService
     public function gave_permission()
     {
         $type=$this->request->input('type');
+
         if($type=='user') {
             return $this->edit_user_permission();
         }
