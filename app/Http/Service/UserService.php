@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Service\RoleService;
+use App\Http\Model\UserRole;
 
 class UserService
 {
@@ -113,28 +114,54 @@ class UserService
 
         return ['status'=>1,'message'=>'获取成功','data'=>$user];
     }
-    public function user_list()
+    public function user_list($user_name='',$role_name='',$role_id='')
     {
-        $data=User::where('id','>',0)->paginate(15);
-        foreach($data as $datum)
-        {
 
-            $user_role=[];
-            foreach($datum->role as $role)
+            if($role_id){
+                $res=UserRole::where('role_id',$role_id)->get();
+                $arr=array();
+                foreach ($res as $item) {
+                    $arr[]=$item['user_id'];
+                }
+                //if($arr){
+                    $data=User::where('id','>',0)->whereIn('id',$arr);
+                //}
+//                else{
+//                    $data=User::where('id','>',0);
+//                }
+            }else{
+                $data=User::where('id','>',0);
+            }
+
+
+
+            if($user_name){
+                $data=$data->where('name','like','%'.$user_name.'%');
+            }
+            $data=$data->paginate(15);
+            foreach($data as $datum)
             {
 
-                if($role->parent_id==0){
+                $user_role=[];
+                foreach($datum->role as $role)
+                {
 
-                    $user_role[]=Role::find($role->id);
-                    unset($datum->role);
-                    $datum->role=[];
-                }else{
-                    $user_role[]=Role::find($role->parent_id);
+                    if($role->parent_id==0){
+
+                        $user_role[]=Role::find($role->id);
+                        unset($datum->role);
+                        $datum->role=[];
+                    }else{
+                        $user_role[]=Role::find($role->parent_id);
+                    }
                 }
+                $datum->parent_role=$user_role;
             }
-            $datum->parent_role=$user_role;
-        }
-        return ['status'=>1,'message'=>'获取成功','data'=>$data];
+            return ['status'=>1,'message'=>'获取成功','data'=>$data];
+
+
+
+
     }
     public function update_status()
     {

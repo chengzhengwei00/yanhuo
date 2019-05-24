@@ -175,5 +175,11 @@ class RoleController extends Controller
         return $this->roleService->show_role();
     }
 
+    //各个岗位的用户列表
+//    public function getUserListByPosition(){
+//        $role_id=$this->request->get('role_id');
+//        return $this->roleService->getUserListByPosition($role_id);
+//    }
+
 
 }

@@ -233,9 +233,17 @@ class UserController extends Controller
         return $this->userService->update_user();
     }
     //用户列表
-    public function getUserList()
+    public function getUserList(Request $request)
     {
-        return $this->userService->user_list();
+        //用户名
+        $user_name=$request->get('user_name');
+        //部门
+        $role_name=$request->get('role_name');
+
+        $role_id=$this->request->get('role_id');
+        //return $this->roleService->getUserListByPosition($role_id);
+
+        return $this->userService->user_list($user_name,$role_name,$role_id);
     }
     //根据id获取用户
     public function getGetUser()

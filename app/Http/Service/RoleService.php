@@ -130,4 +130,25 @@ class RoleService
     }
 
 
+    //
+    public function getUserListByPosition($role_id){
+        if(!$role_id){
+            return ['status'=>0,'message'=>'参数错误'];
+        }
+        $res=UserRole::where('role_id',$role_id)->get();
+        $arr=array();
+        foreach ($res as $item) {
+            $arr[]=$item['user_id'];
+        }
+        if($arr){
+            $data=User::whereIn('id',$arr)->get();
+            return ['status'=>1,'message'=>'获取成功','data'=>$data];
+        }else{
+            return ['status'=>0,'message'=>'数据为空'];
+        }
+
+
+    }
+
+
 }

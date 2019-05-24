@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Model\ContractSchedule;
+use App\Http\Service\ContractService;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use App\Http\Model\Contract;
 use App\Http\Model\Standard;
 use Illuminate\Support\Facades\DB;
 use App\Http\Service\ScheduleService;
 use App\Http\Service\ContractScheduleService;
+use Illuminate\Support\Facades\Log;
 
 class ScheduleController extends Controller
 {
@@ -164,17 +167,24 @@ class ScheduleController extends Controller
         return $this->scheduleService->apply_department_list();
     }
     //延迟跟踪
-    public function postDelayTrack()
-    {
-        return $this->scheduleService->delay_track();
-    }
+//    public function postDelayTrack()
+//    {
+//        return $this->scheduleService->delay_track();
+//    }
 
 
     //展示合同对schedule的需求状况
     public function getScheduleIsNeed(ContractScheduleService $contractScheduleService){
         $contract_id=$this->request->get('contract_id');
-        return $contractScheduleService->getScheduleIsNeedSelect($contract_id);
 
+        //获得合同信息
+        $contractService=new ContractService($this->request);
+        $res=$contractService->contract_info($contract_id);
+        $arr['contract_no']=$res->InspectionRequiremenCode;
+        $arr['factory_name']=$res->FactoryName;
+        $arr['sku_list']=$contractService->sku_list($contract_id);
+        $arr['schedule_list_select']=$contractScheduleService->getScheduleIsNeedSelect($contract_id);
+        return $arr;
         //获得所有schedule
 //        $scheduleListRes=$this->scheduleService->list();
 //        $scheduleList=$scheduleListRes['data'];
@@ -225,6 +235,59 @@ class ScheduleController extends Controller
         $res=$contractScheduleService->updateScheduleIsNeed($contract_id,$need_params);
         return $res;
     }
+
+
+
+    //设置延迟跟踪
+    public function setDelayTrack(Request $request,ScheduleService $scheduleService){
+       //获得合同id
+        $contract_id=$request->contract_id;
+        $res=Contract::where('id',$contract_id)->first();
+        if(isset($res->delay_track)&&$res->delay_track==1){
+            return ['status'=>'0','message'=>'已经在延迟跟踪了'];
+        }
+
+        //$scheduleService=new ScheduleService();
+        $plan_data=$scheduleService->getPlanDay($contract_id);
+        //return $plan_data;
+        if($plan_data){
+            if($plan_data>-60){
+                return ['status'=>'0','message'=>'超出约定交货时长60天以内不能延迟跟踪'];
+            }
+
+            Contract::where('id',$contract_id)->update(array('delay_track'=>1));
+            return ['status'=>'1','message'=>'延迟跟踪成功'];
+        }else{
+            return ['status'=>'0','message'=>'合同不存在'];
+        }
+
+
+    }
+
+
+    //恢复跟踪
+    public function setTrack(Request $request){
+        $contract_id=$request->contract_id;
+        $res=Contract::where('id',$contract_id)->first();
+        if(isset($res->delay_track)&&$res->delay_track==0){
+            return ['status'=>'0','message'=>'已经在恢复跟踪了'];
+        }
+        Contract::where('id',$contract_id)->update(array('delay_track'=>0));
+        return ['status'=>'1','message'=>'恢复跟踪成功'];
+    }
+
+    //60天内必须恢复跟踪
+    public function setTrackAll(){
+        //获得60天后的时间
+        $time=time()+3600*24*60;
+        $date=date('Y-m-d H:i:s',$time);
+        //return $date;
+        Contract::where('plan_delivery_time','<',$date)->update(array('delay_track'=>0));
+        $log='恢复跟踪成功'.date('Y-m-d',$time);
+        Log::info($log);
+    }
+
+
 
 
 

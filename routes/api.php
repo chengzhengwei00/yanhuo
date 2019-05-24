@@ -40,6 +40,8 @@ Route::group(['prefix' => 'v1','middleware' => 'auth:api'], function(){
     Route::get('user/get-user', 'Admin\UserController@getGetUser');//根据id获取用户
     Route::post('user/update-status', 'Admin\UserController@postUpdateStatus');//根据id获取用户
     Route::get('role/show-role', 'Admin\RoleController@getShowRole');//根据id部门岗位展示
+    //Route::get('role/user-list-roleid', 'Admin\RoleController@getUserListByPosition');//展示岗位下面的用户
+
     Route::apiResource('role', 'Admin\RoleController');
     //合同类
 
@@ -91,9 +93,11 @@ Route::group(['prefix' => 'v1','middleware' => 'auth:api'], function(){
     Route::get('schedule/apply-inspection-list', 'Admin\ScheduleController@getApplyInspectionList');//申请验货list
     Route::post('schedule/post-inspection-department', 'Admin\ScheduleController@postPostInspectionDepartment');//提交质检部
     Route::get('schedule/apply-department-list', 'Admin\ScheduleController@getApplyDepartmentList');//申请验货list
-    Route::post('schedule/delay-track', 'Admin\ScheduleController@postDelayTrack');//延迟跟踪
-    Route::get('schedule/schedule-isneed', 'Admin\ScheduleController@getScheduleIsNeed');//延迟跟踪
-    Route::post('schedule/update_schedule-isneed', 'Admin\ScheduleController@updateScheduleIsNeed');//延迟跟踪
+    Route::get('schedule/delay-track', 'Admin\ScheduleController@setDelayTrack');//延迟跟踪
+    Route::get('schedule/set-track', 'Admin\ScheduleController@setTrack');//恢复跟踪
+    Route::get('schedule/set-track-all', 'Admin\ScheduleController@setTrackAll');//批量恢复跟踪
+    Route::get('schedule/schedule-isneed', 'Admin\ScheduleController@getScheduleIsNeed');//
+    Route::post('schedule/update_schedule-isneed', 'Admin\ScheduleController@updateScheduleIsNeed');//
 
     Route::apiResource('schedule', 'Admin\ScheduleController');
     //上传文件

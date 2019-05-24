@@ -202,4 +202,5 @@ class ContractService
         $data=$this->analysis($id);
         return $data['contract_info'];
     }
+
 }

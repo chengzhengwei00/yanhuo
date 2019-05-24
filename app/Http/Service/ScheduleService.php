@@ -97,6 +97,10 @@ class ScheduleService
             if($total_count==0){
                 $total_count=count($Schedule);
             }
+
+            $contractScheduleList=$contractScheduleService->getSchedulesByContract($item->id);
+            $mustSelectStatus=count($contractScheduleList['data']);
+            $item->must_select_status=$mustSelectStatus?1:0;
             $item->total_count=$total_count;
             $item->rate=$item->quantity/$total_count;
             $item->to_week=DifferWeek($item->sign_time,time());
@@ -108,6 +112,17 @@ class ScheduleService
             unset($item->json_data);
         }
         return ['status'=>'1','message'=>'获取成功','data'=>$data];
+    }
+
+    //得到某个合同超出交货时长
+    public function getPlanDay($contract_id){
+        $contractData=Contract::where('id',$contract_id)->first();
+        if(isset($contractData->plan_delivery_time)&&$contractData->plan_delivery_time){
+            $plan_day=DifferDay($contractData->plan_delivery_time,time());
+            return $plan_day;
+        }
+        return [];
+
     }
 
     //合同排序
@@ -716,12 +731,12 @@ class ScheduleService
         return $this->apply_list();
     }
     //延迟跟踪
-    public function delay_track()
-    {
-        $contract_id=$this->request->input('contract_id');
-        $contract=Contract::find($contract_id);
-        $contract->delay_track=1;
-        $contract->save();
-        return ['status' => 1, 'message' => '操作成功'];
-    }
+//    public function delay_track()
+//    {
+//        $contract_id=$this->request->input('contract_id');
+//        $contract=Contract::find($contract_id);
+//        $contract->delay_track=1;
+//        $contract->save();
+//        return ['status' => 1, 'message' => '操作成功'];
+//    }
 }
