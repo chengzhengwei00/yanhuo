@@ -38,7 +38,7 @@ class ContractService
                     true);
                 $result = json_decode($res);
                 if($result->totalCount!=0){$flag=true;$i++;}
-                if ($result->IsSuccess == 1) {
+                if (issset($result->IsSuccess) && $result->IsSuccess == 1) {
                     $Data = $result->Data;
                     foreach ($Data as $data) {
                         $contract_no = $data->InspectionRequiremenCode;
