@@ -108,10 +108,39 @@ class ScheduleService
             $item->plan_week=DifferWeek($item->plan_delivery_time,time());
             $item->plan_day=DifferDay($item->plan_delivery_time,time());
             $item->repeat_record=$repeat_record;
+			$item->break_update=$this->break_update($item->id);
 
             unset($item->json_data);
         }
         return ['status'=>'1','message'=>'获取成功','data'=>$data];
+    }
+	    //判断合同是否有中断更新
+    public function break_update($contract_id)
+    {
+        $history=$this->history_comm($contract_id);
+        if(!empty($history['data']))
+        {
+            foreach($history['data'] as $datum)
+            {
+                if($datum['id']!=''){
+                    $mark=true;
+                }
+                if($datum['id']==''){
+                    if(isset($mark))
+                    {
+                        $mark=false;
+                        break;
+                    }
+
+                }
+            }
+        }
+        if(isset($mark) && $mark==false){
+            $result=true;
+        }else{
+            $result=false;
+        }
+        return $result;
     }
 
     //得到某个合同超出交货时长

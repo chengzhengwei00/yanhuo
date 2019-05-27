@@ -33,12 +33,12 @@ class ContractService
         do {
             $flag=false;
             //DB::transaction(function () {
-                $res = curl('http://114.55.32.144:666/productmgr/QueryOrderInspectionRAPI',
+                $res = curl('http://114.55.32.144:443/productmgr/QueryOrderInspectionRAPI',
                     array('userid' => 'user@api', 'password' => 'password@api', 'page' => $i, 'pagesize' => 10),
                     true);
                 $result = json_decode($res);
                 if($result->totalCount!=0){$flag=true;$i++;}
-                if (issset($result->IsSuccess) && $result->IsSuccess == 1) {
+                if (isset($result->IsSuccess) && $result->IsSuccess == 1) {
                     $Data = $result->Data;
                     foreach ($Data as $data) {
                         $contract_no = $data->InspectionRequiremenCode;
@@ -112,7 +112,7 @@ class ContractService
         foreach($contract as $data)
         {
             //if($data['status_code']=='03'||$data['status_code']=='08'){
-                $res = curl('http://114.55.32.144:666/productmgr/QueryStatusRAPI',
+                $res = curl('http://114.55.32.144:443/productmgr/QueryStatusRAPI',
                     array('userid' => 'user@api', 'password' => 'password@api','Code'=>$data->contract_no),
                     true);
 					//if($data->id==28)return $res;
