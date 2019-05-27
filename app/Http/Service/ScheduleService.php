@@ -593,6 +593,7 @@ class ScheduleService
     {
         return $this->common_view('');
     }
+	
 
     //申请验货
     public function apply_inspection()
