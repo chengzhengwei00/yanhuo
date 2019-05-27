@@ -114,22 +114,48 @@ class UserService
 
         return ['status'=>1,'message'=>'获取成功','data'=>$user];
     }
-    public function user_list($user_name='',$role_name='',$role_id='')
+    public function user_list($user_name='',$role_name='',$role_id='',$department_id='')
     {
+           if($department_id||$role_id){
 
-            if($role_id){
-                $res=UserRole::where('role_id',$role_id)->get();
-                $arr=array();
-                foreach ($res as $item) {
-                    $arr[]=$item['user_id'];
-                }
-                //if($arr){
-                    $data=User::where('id','>',0)->whereIn('id',$arr);
-                //}
-//                else{
-//                    $data=User::where('id','>',0);
-//                }
-            }else{
+               $arr1=array();
+               if($department_id){
+                   $roleRes=Role::where('parent_id',$department_id)->get();
+                   foreach ($roleRes as $item) {
+                       $roleIdArr[]=$item['id'];
+                   }
+
+                   $res=UserRole::whereIn('role_id',$roleIdArr)->get();
+
+                   foreach ($res as $item) {
+                       $arr1[]=$item['user_id'];
+                   }
+               }
+               $arr2=array();
+               if($role_id){
+                   $res=UserRole::where('role_id',$role_id)->get();
+
+                   foreach ($res as $item) {
+                       $arr2[]=$item['user_id'];
+                   }
+
+//                   if(!$arr2){
+//                       $arr2=$arr1;
+//                   }else{
+                       $arr1=array();
+//                   }
+
+               }
+
+               $arr=array_merge($arr1,$arr2);
+
+
+               $data=User::where('id','>',0)->whereIn('id',$arr);
+
+
+
+
+           }else{
                 $data=User::where('id','>',0);
             }
 

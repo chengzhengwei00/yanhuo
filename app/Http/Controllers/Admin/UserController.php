@@ -241,9 +241,11 @@ class UserController extends Controller
         $role_name=$request->get('role_name');
 
         $role_id=$this->request->get('role_id');
+
+        $department_id=$this->request->get('department_id');
         //return $this->roleService->getUserListByPosition($role_id);
 
-        return $this->userService->user_list($user_name,$role_name,$role_id);
+        return $this->userService->user_list($user_name,$role_name,$role_id,$department_id);
     }
     //根据id获取用户
     public function getGetUser()

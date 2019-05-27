@@ -86,7 +86,12 @@ class RoleService
     public function position_list()
     {
         $id=$this->request->input('id');
-        $department=Role::where('parent_id',$id)->get();
+        if($id){
+            $department=Role::where('parent_id',$id)->get();
+
+        }else{
+            $department=array();
+        }
         $parent=Role::find($id);
 
 
