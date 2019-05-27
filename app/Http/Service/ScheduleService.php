@@ -62,7 +62,7 @@ class ScheduleService
         $data=$this->contract_sort($data);
 
 
-        $data=$data->paginate(10);
+        $data=$data->orderBy('delay_track','desc')->paginate(10);
         //$total_count=Schedule::all()->count();
         foreach ($data as &$item)
         {
