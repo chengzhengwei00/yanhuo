@@ -33,7 +33,7 @@ class ContractService
         do {
             $flag=false;
             //DB::transaction(function () {
-                $res = curl('http://114.55.32.144:666/productmgr/QueryOrderInspectionRAPI',
+                $res = curl('http://114.55.32.144:443/productmgr/QueryOrderInspectionRAPI',
                     array('userid' => 'user@api', 'password' => 'password@api', 'page' => $i, 'pagesize' => 10),
                     true);
                 $result = json_decode($res);
@@ -112,7 +112,7 @@ class ContractService
         foreach($contract as $data)
         {
             //if($data['status_code']=='03'||$data['status_code']=='08'){
-                $res = curl('http://114.55.32.144:666/productmgr/QueryStatusRAPI',
+                $res = curl('http://114.55.32.144:443/productmgr/QueryStatusRAPI',
                     array('userid' => 'user@api', 'password' => 'password@api','Code'=>$data->contract_no),
                     true);
 					//if($data->id==28)return $res;
