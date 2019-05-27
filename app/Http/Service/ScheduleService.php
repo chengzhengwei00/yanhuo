@@ -54,7 +54,20 @@ class ScheduleService
         $query->where('status_code','03')
             ->orWhere('status_code','08');});
 
-
+        $is_delay_order=$this->request->get('is_delay_order');
+        $is_out_shedule=$this->request->get('is_out_shedule');
+        if($is_delay_order==1){
+            $data=$data->where('delay_track','1');
+        }
+        if($is_delay_order==2){
+            $data=$data->where('delay_track','0');
+        }
+        if($is_out_shedule==1){
+            $data=$data->where('is_out_shedule','1');
+        }
+        if($is_out_shedule==2){
+            $data=$data->where('is_out_shedule','0');
+        }
 
         //搜索
         $data=$this->contract_search($data);
@@ -62,7 +75,7 @@ class ScheduleService
         $data=$this->contract_sort($data);
 
 
-        $data=$data->orderBy('delay_track','desc')->paginate(10);
+        $data=$data->paginate(10);
         //$total_count=Schedule::all()->count();
         foreach ($data as &$item)
         {

@@ -191,6 +191,11 @@ class ContractScheduleService
 //                return ['status'=>'1','message'=>'更新成功'];
 //            }
         }
+
+        $isHasData=ContractSchedule::where(array('contract_id'=>$contract_id))->get();
+        if(count($isHasData)){
+            Contract::where(array('id'=>$contract_id))->update(['is_out_shedule'=>1]);
+        }
         //return ['status'=>'0','message'=>'更新失败'];
         return ['status'=>'1','message'=>'更新成功'];
     }
