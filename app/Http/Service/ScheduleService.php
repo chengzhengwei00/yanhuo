@@ -507,28 +507,19 @@ class ScheduleService
         }
 
     }
-
-
-
-
-    //历史记录
-    public function history()
+   //历史记录
+    public function history_comm($contract_id)
     {
-        $contract_id=$this->request->input('contract_id');
         $contract_info=Contract::find($contract_id);
+        if(!$contract_info){
+            return ['status' => 0, 'message' => '没有数据','data'=>[]];
+        }
         unset($contract_info->json_data);
         $now_to_sign_week=round((time()-strtotime($contract_info->sign_time))/3600/24/7);
+        //return $now_to_sign_week;
         $week=[];
-        for($i=1;$i<=$now_to_sign_week+1;$i++)
+        for($i=1;$i<=$now_to_sign_week;$i++)
         {
-			if(date('w',strtotime($contract_info->sign_time))==1)
-			{
-				$week_Monday=date('Y-m-d',strtotime("$i Monday", strtotime($contract_info->sign_time)));
-				$week_Sunday=date('Y-m-d',strtotime("$i Sunday", strtotime($contract_info->sign_time)));
-			}else{
-				$week_Monday=date('Y-m-d',strtotime("$i Monday", strtotime($contract_info->sign_time)));
-				$week_Sunday=date('Y-m-d',strtotime(($i+1)." Sunday", strtotime($contract_info->sign_time)));
-			}
             $week[]=array(
                 'i'=>$i,
                 'id'=>'',
@@ -547,20 +538,14 @@ class ScheduleService
                 'to_day'=>'',
                 'plan_week'=>'',
                 'plan_day'=>'',
-                'week_Monday'=>$week_Monday,
-                'week_Sunday'=>$week_Sunday,
+                'week_Monday'=>date('Y-m-d',strtotime("$i Monday", strtotime($contract_info->sign_time))),
+                'week_Sunday'=>date('Y-m-d',strtotime(($i+1)." Sunday", strtotime($contract_info->sign_time))),
                 'sign_time'=>$contract_info->sign_time,
             );
 
         }
-        //$UserSchedule=UserSchedule::where('contract_id',$contract_id)->groupBy(DB::raw("date_format(created_at,'%Y-%m-%d')"))->select(DB::raw('*,max(id) as id'))->get();
-
-
-
-        //$UserSchedule=UserSchedule::with('user')->where('contract_id',$contract_id)->groupBy(DB::raw("date_format(created_at,'%Y-%m-%d')"))->select(DB::raw('user_id,max(id) as id'))->get();
-        $idMax=UserSchedule::where('contract_id',$contract_id)->groupBy(DB::raw("date_format(created_at,'%Y-%m-%d')"))->select(DB::raw('max(id) as id'))->get();
-        $UserSchedule=UserSchedule::with('user')->whereIn('id',$idMax)->get();
-        //$total_count=Schedule::all()->count();
+        $UserSchedule=UserSchedule::where('contract_id',$contract_id)->groupBy(DB::raw("date_format(created_at,'%Y-%m-%d')"))->select(DB::raw('*,max(id) as id'))->get();
+        $total_count=Schedule::all()->count();
         $result=[];
         foreach($UserSchedule as $item)
         {
@@ -568,6 +553,7 @@ class ScheduleService
             $created_at=strtotime($item->created_at);
             $sign_time=strtotime($item->Contract->sign_time);
             $to_week=round(($created_at-$sign_time)/3600/24/7) ;
+
             unset($item->Contract->json_data);
             $item->contract=$item->Contract;
 
@@ -577,59 +563,30 @@ class ScheduleService
                 if($c->status==1){$i++;}
             }
             $item->i=$to_week;
-            $item->username=$item->User->name;
             $item->quantity=$i;
-
-            $contractScheduleService=new ContractScheduleService($this->request,$this->response);
-            $Schedule=$contractScheduleService->getScheduleIsNeed($contract_id);
-            $total_count=0;
-            foreach ($Schedule as $ScheduleItem) {
-                if(isset($ScheduleItem['is_need'])&&$ScheduleItem['is_need']==1){
-                    $total_count++;
-                }
-                if(isset($ScheduleItem['is_must'])&&$ScheduleItem['is_must']==1){
-                    $total_count++;
-                }
-            }
-            if($total_count==0){
-                $total_count=count($Schedule);
-            }
-
-
             $item->total_count=$total_count;
             $item->rate=$item->quantity/$total_count;
             $item->to_week=DifferWeek($item->Contract->sign_time,time());
             $item->to_day=DifferDay($item->Contract->sign_time,time());
             $item->plan_week=DifferWeek($item->Contract->plan_delivery_time,time());
             $item->plan_day=DifferDay($item->Contract->plan_delivery_time,time());
-			// $item->week_Monday=>date('Y-m-d',strtotime("$to_week Monday", strtotime($item->Contract->sign_time)));
-            // $item->week_Sunday=>date('Y-m-d',strtotime(($to_week+1)." Sunday", strtotime($item->Contract->sign_time)));
+            $item->week_Monday=date('Y-m-d',strtotime(($to_week+1)." Monday", strtotime($item->Contract->sign_time)));
+            $item->week_Sunday=date('Y-m-d',strtotime(($to_week+2)." Sunday", strtotime($item->Contract->sign_time)));
             $item->sign_time=$item->Contract->sign_time;
             $result[$to_week]=$item;
 
         }
-        // $result=($result+$week);
-        // ksort($result);
-		foreach($week as &$w)
-		{
-			foreach($result as $r)
-			{
-				if(strtotime($r->updated_at)>strtotime($w['week_Monday']) && strtotime($r->updated_at)<strtotime($w['week_Sunday']))
-				{
-					$week_Monday=$w['week_Monday'];
-					$week_Sunday=$w['week_Sunday'];
-					$w=$r;
-					$w['week_Monday']=$week_Monday;
-					$w['week_Sunday']=$week_Sunday;
-
-				}
-				
-			}
-			if(strtotime($w['week_Monday'])>time())array_pop($week);
-		}
+        $result=($result+$week);
+        ksort($result);
 
 
-         return ['status' => 0, 'message' => '获取成功','data'=>array_values($week)];
+         return ['status' => 1, 'message' => '获取成功','data'=>array_values($result)];
+    }
+    //历史记录
+    public function history()
+    {
+        $contract_id=$this->request->input('contract_id');
+        return $this->history_comm($contract_id);
     }
     //历史记录详情
     public function history_view()
