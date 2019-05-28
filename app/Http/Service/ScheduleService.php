@@ -367,23 +367,28 @@ class ScheduleService
         $newSchedule=array();
         if($UserSchedule) {
             foreach ($Schedule as $Schedulekey=> $data) {
-                if($data['is_need']==1||$data['is_must']==1){
+
                     $status_array = (array)json_decode($UserSchedule->status);
                     $data->status=0;
-                    foreach($status_array as $item){
-                        if (isset($item->schedule_id) && $item->schedule_id==$data->id) {
-                            $data->status = $item->status;
-                            $data->change_time = $item->change_time;
-                            $data->update_time=isset($new_array1[$item->schedule_id])?$created_at[$item->schedule_id]:'';
-                            $data->is_need = $item->is_need;
-                            $data->show_photo = isset($photo_array[$item->schedule_id])?$photo_array[$item->schedule_id]:[];
+                    //if($data['is_need']==1||$data['is_must']==1){
+                        foreach($status_array as $item){
+                            if (isset($item->schedule_id) && $item->schedule_id==$data->id) {
+                                $data->status = $item->status;
+                                $data->change_time = $item->change_time;
+                                $data->update_time=isset($new_array1[$item->schedule_id])?$created_at[$item->schedule_id]:'';
+                                if($data['is_need']==1||$data['is_must']==1) {
+
+                                    $data->is_need = $item->is_need;
+                                }
+                                $data->show_photo = isset($photo_array[$item->schedule_id])?$photo_array[$item->schedule_id]:[];
+                            }
                         }
-                    }
-                    $newSchedule[$Schedulekey]=$data;
-                }
+
+                    //}
+                $newSchedule[$Schedulekey]=$data;
 
             }
-
+            //return $newSchedule;
             if(isset($UserSchedule->sku_schedule)&&!empty($UserSchedule->sku_schedule)){
                 $sku_schedule=json_decode($UserSchedule->sku_schedule,true);
                 if($sku_schedule&&isset($sku_schedule[0]['schedule_id'])&&$sku_schedule[0]['schedule_id']==37){
