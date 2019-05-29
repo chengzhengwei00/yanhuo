@@ -303,6 +303,7 @@ class ScheduleService
     public function common_view($contract_id)
     {
         $id=$this->request->input('id');
+        $first_contract_id=$contract_id;
         if(empty($contract_id))
         {
             $UserSchedule=UserSchedule::find($id);
@@ -352,7 +353,7 @@ class ScheduleService
 
         $contractScheduleService=new ContractScheduleService($this->request,$this->response);
         $Schedule=$contractScheduleService->getScheduleIsNeed($contract_id);
-
+        //return $Schedule;
 
 //        $scheduleService=new ScheduleService($this->request,$this->response);
 //        $scheduleListRes=$scheduleService->listIsMust();
@@ -368,24 +369,39 @@ class ScheduleService
         if($UserSchedule) {
             foreach ($Schedule as $Schedulekey=> $data) {
 
-                    $status_array = (array)json_decode($UserSchedule->status);
-                    $data->status=0;
-                    //if($data['is_need']==1||$data['is_must']==1){
+//                if($first_contract_id){
+                    if($data['is_need']==1||$data['is_must']==1){
+
+                        $status_array = (array)json_decode($UserSchedule->status);
+                        $data->status=0;
                         foreach($status_array as $item){
                             if (isset($item->schedule_id) && $item->schedule_id==$data->id) {
                                 $data->status = $item->status;
                                 $data->change_time = $item->change_time;
                                 $data->update_time=isset($new_array1[$item->schedule_id])?$created_at[$item->schedule_id]:'';
-                                if($data['is_need']==1||$data['is_must']==1) {
-
-                                    $data->is_need = $item->is_need;
-                                }
+                                $data->is_need = $item->is_need;
                                 $data->show_photo = isset($photo_array[$item->schedule_id])?$photo_array[$item->schedule_id]:[];
                             }
                         }
+                        $newSchedule[$Schedulekey]=$data;
+                    }
+//                }else{
+//                    $status_array = (array)json_decode($UserSchedule->status);
+//                    $data->status=0;
+//                    foreach($status_array as $item){
+//                        if (isset($item->schedule_id) && $item->schedule_id==$data->id) {
+//                            $data->status = $item->status;
+//                            $data->change_time = $item->change_time;
+//                            $data->update_time=isset($new_array1[$item->schedule_id])?$created_at[$item->schedule_id]:'';
+//
+//                            $data->show_photo = isset($photo_array[$item->schedule_id])?$photo_array[$item->schedule_id]:[];
+//                        }
+//                    }
+//                    $newSchedule[$Schedulekey]=$data;
+//                }
 
-                    //}
-                $newSchedule[$Schedulekey]=$data;
+
+
 
             }
             //return $newSchedule;
