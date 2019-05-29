@@ -56,6 +56,7 @@ class ScheduleService
 
         $is_delay_order=$this->request->get('is_delay_order');
         $is_out_shedule=$this->request->get('is_out_shedule');
+        $break_update=$this->request->get('break_update');
         if($is_delay_order==1){
             $data=$data->where('delay_track','1');
         }
@@ -67,6 +68,13 @@ class ScheduleService
         }
         if($is_out_shedule==2){
             $data=$data->where('is_out_shedule','0');
+        }
+
+        if($break_update==1){
+            $data=$data->where('break_update','1');
+        }
+        if($break_update==2){
+            $data=$data->where('break_update','0');
         }
 
         //搜索
@@ -520,11 +528,7 @@ class ScheduleService
 
         }
 
-        //更新合同表里面进度
-            $contract=Contract::find($contract_id);
-            $contract->progress=$count;
-            $contract->delay_track=null;
-            $contract->save();
+
             //添加合同进度
             $userSchedule = new UserSchedule();
             $userSchedule->user_id = $user_id;
@@ -535,6 +539,16 @@ class ScheduleService
                 $userSchedule->sku_schedule = json_encode($sku_schedule_arr);
             }
             $userSchedule->save();
+
+
+            //更新合同表里面进度
+            $break_update=$this->break_update($contract_id);
+            $contract=Contract::find($contract_id);
+            $contract->progress=$count;
+            $contract->delay_track=0;
+            $break_update?$contract->break_update=1:$contract->break_update=0;
+            $contract->save();
+
             return ['status'=>1,'message'=>'更新成功'];
         }catch (\Exception $exception)
         {
