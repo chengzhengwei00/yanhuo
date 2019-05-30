@@ -6,6 +6,7 @@ use App\Http\Model\ContractSchedule;
 use Illuminate\Http\Response;
 use Illuminate\Http\Request;
 use App\Http\Model\Contract;
+use App\Http\Model\ContractScheduleLogs;
 use App\Http\Model\ContractStandard;
 use App\Http\Model\Standard;
 use Illuminate\Support\Facades\Auth;
@@ -172,6 +173,9 @@ class ContractScheduleService
                                 $contractSchedule->schedule_id=$schedule_id;
                                 $contractSchedule->contract_id=$contract_id;
                                 $res=$contractSchedule->save();
+
+
+
                             }
                         }
                         if($item['is_need']==0){
@@ -180,6 +184,13 @@ class ContractScheduleService
                                 $res=ContractSchedule::where(array('schedule_id'=>$schedule_id,'contract_id'=>$contract_id))->delete();
                             }
                         }
+
+                        $contractScheduleLogs=new ContractScheduleLogs();
+                        $contractScheduleLogs->schedule_id=$schedule_id;
+                        $contractScheduleLogs->contract_id=$contract_id;
+                        $contractScheduleLogs->user_id= Auth::id();
+
+                        $res=$contractScheduleLogs->save();
 
                     }
 
