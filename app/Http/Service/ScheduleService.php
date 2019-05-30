@@ -286,19 +286,19 @@ class ScheduleService
     //状态列表
     public function list()
     {
-        return ['status'=>1,'message'=>'获取成功','data'=>Schedule::all()];
+        return ['status'=>1,'message'=>'获取成功','data'=>Schedule::orderBy('sort','asc')->get()];
     }
 
     //获得不是必须的状态列表
     public function listIsMust()
     {
-        return ['status'=>1,'message'=>'获取成功','data'=>Schedule::where('is_must',1)->get()];
+        return ['status'=>1,'message'=>'获取成功','data'=>Schedule::where('is_must',1)->orderBy('sort','asc')->get()];
     }
 
     //获得不是必须的状态列表
     public function listIsSelect()
     {
-        return ['status'=>1,'message'=>'获取成功','data'=>Schedule::where('is_must',0)->get()];
+        return ['status'=>1,'message'=>'获取成功','data'=>Schedule::where('is_must',0)->orderBy('sort','asc')->get()];
     }
     //展示订单进度状态
     public function view($contract_id)
@@ -315,7 +315,13 @@ class ScheduleService
         if(empty($contract_id))
         {
             $UserSchedule=UserSchedule::find($id);
-            $contract_id=$UserSchedule->contract_id;
+
+            if(isset($UserSchedule->contract_id)&&$UserSchedule->contract_id){
+                $contract_id=$UserSchedule->contract_id;
+            }else{
+                return ['status' => 1, 'message' => '参数错误','data'=>array('schedule'=>[],'sku_list'=>[])];
+            }
+
         }else{
             $UserSchedule=UserSchedule::where('contract_id',$contract_id)->orderBy('id','desc')->first();
         }

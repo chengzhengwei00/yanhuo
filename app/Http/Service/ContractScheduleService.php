@@ -125,7 +125,7 @@ class ContractScheduleService
             $res=false;
 
             //以下是三选一
-            $isSelectArr=array('11'=>1,'12'=>1,'13'=>1);
+            $isSelectArr=array('11'=>1,'12'=>1,'13'=>1,'43'=>1);
             foreach ($need_params as $i) {
 
                 if(isset($i['is_need'])&&$i['is_need']==0&&$i['schedule_id']){
