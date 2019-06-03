@@ -85,12 +85,55 @@ class ScheduleService
 
         $data=$data->paginate(10);
         //$total_count=Schedule::all()->count();
+        //return $data;
+        $arr=array();
+        $i=0;
         foreach ($data as &$item)
         {
             $repeat_record=$this->repeat_record($item->id);
             $contractService= new ContractService($this->request);
             $sku_list= $contractService->sku_list($item->id);
+
+
+            //获得验货数量
+            $apply_inspection_info=$item->apply_inspection()->orderBy('id','desc')->first();
+            if($apply_inspection_info&&$apply_inspection_info->sku_num){
+                $apply_inspection_num_info=json_decode($apply_inspection_info->sku_num);
+            }else{
+                $apply_inspection_num_info=array();
+            }
+
+            //return $apply_inspection_num_info;
+            $inspection_list=array();
+            if(isset($apply_inspection_num_info)&&$apply_inspection_num_info){
+                foreach ($apply_inspection_num_info as $inspection_key => $inspection_item) {
+                    foreach ($sku_list as $sku_key=> $sku_list_item) {
+                        if($inspection_item->sku==$sku_list_item['sku']){
+                            $sku_list[$sku_key]['inspectioned_num'] =  $inspection_item->quantity;
+                            $sku_list[$sku_key]['inspection_left_num'] = $sku_list_item['detail_counts']- $inspection_item->quantity;
+                            $sku_list[$sku_key]['sku'] = $sku_list_item['sku'];
+                            //break;
+                        }else{
+                            isset($sku_list[$sku_key]['inspectioned_num'])&&$sku_list[$sku_key]['inspectioned_num']?$sku_list[$sku_key]['inspectioned_num'] =  $sku_list[$sku_key]['inspectioned_num']:$sku_list[$sku_key]['inspectioned_num'] =  0;
+                            isset($sku_list[$sku_key]['inspection_left_num'])&&$sku_list[$sku_key]['inspection_left_num']?$sku_list[$sku_key]['inspection_left_num'] = $sku_list[$sku_key]['inspection_left_num']:$sku_list[$sku_key]['inspection_left_num']=$sku_list[$sku_key]['detail_counts'];
+                            $sku_list[$sku_key]['sku'] = $sku_list_item['sku'];
+                        }
+                    }
+                }
+
+
+            }
+
             $item->sku_list=$sku_list;
+//            if($inspection_list){
+//                $item->inspection_list=json_decode(json_encode($inspection_list),true);
+//            }else{
+//                $item->inspection_list=$inspection_list;
+//            }
+
+            //return $inspection_list;
+            //return $apply_inspection_num_info[0]->quantity;
+
             $UserSchedule=UserSchedule::where('contract_id',$item->id)->orderBy('id','desc')->first();//最新更新记录
             //计算勾选的数量
             if($UserSchedule) {
@@ -133,6 +176,7 @@ class ScheduleService
 
             unset($item->json_data);
         }
+
         return ['status'=>'1','message'=>'获取成功','data'=>$data];
     }
 	    //判断合同是否有中断更新

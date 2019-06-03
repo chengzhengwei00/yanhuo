@@ -15,4 +15,9 @@ class Contract extends Model
     {
         return $this->hasMany('App\Http\Model\UserSchedule', 'contract_id', 'id');
     }
+
+    function apply_inspection()
+    {
+        return $this->hasMany('App\Http\Model\ApplyInspection','contract_id');
+    }
 }
