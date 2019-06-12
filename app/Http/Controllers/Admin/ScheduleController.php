@@ -217,21 +217,6 @@ class ScheduleController extends Controller
         $contract_id=$this->request->post('contract_id');
         $need_params=$this->request->post('need_params');
 
-//        $contract_id=31;
-//        $need_params=array(
-//            array(
-//                'is_need'=>1,
-//                'schedule_id'=>2
-//            ),
-//            array(
-//                'is_need'=>1,
-//                'schedule_id'=>3
-//            ),
-//            array(
-//                'is_need'=>0,
-//                'schedule_id'=>4
-//            )
-//        );
         $res=$contractScheduleService->updateScheduleIsNeed($contract_id,$need_params);
         return $res;
     }

@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\DB;
 
 class ScheduleService
 {
-    protected $status;
+    public $status;
 
     public function __construct(Request $request,Response $response)
     {
@@ -867,11 +867,55 @@ class ScheduleService
             return ['status' => 0, 'message' => '申请失败'];
         }
     }
-    public function apply_list()
+    public function apply_list($where=array())
     {
+
+
+        if($where){
+            $apply=ApplyInspection::where('status',$this->status)->where($where);
+        }else{
+            $apply=ApplyInspection::where('status',$this->status);
+        }
+        $apply=$apply->paginate(100);
+
+        $apply=$this->deal_apply_list($apply);
+
+//        foreach($apply as $item)
+//        {
+//            $item->apply_name=$item->user->name;
+//            $item->factory_name=$item->contract->manufacturer;
+//            $item->factory_address=$item->contract->manufacturer_address;
+//            $item->contract_no=$item->contract->contract_no;
+//            $item->quantity=count(json_decode($item->sku_num));
+//            $item->new_quantity=0;
+//
+//            //
+//            $contractService= new ContractService($this->request);
+//            $sku_info= $contractService->analysis($item->contract_id);
+//            $address=$sku_info['contract_info'];
+//            $item->ProviceName=$address->ProviceName;
+//            $item->CityName=$address->CityName;
+//            $item->total_quantity=count($sku_info['sku_list']);
+//            $new_sku=[];
+//            foreach(json_decode($item->sku_num) as $sku)
+//            {
+//                $sku->complete=isset($complete_status[$sku->complete])?$complete_status[$sku->complete]:'';
+//                if($sku->isNew==1){
+//                    $item->new_quantity+=1;
+//                }
+//                $sku->pic=isset($sku_info['data'][$sku->sku])&&isset($sku_info['data'][$sku->sku]['sku_sys']->pic)?current($sku_info['data'][$sku->sku]['sku_sys']->pic):'';
+//                $new_sku[]=$sku;
+//            }
+//            $item->sku_num=$new_sku;
+//            unset($item->contract);
+//
+//        }
+        return ['status' => 1, 'message' => '获取成功','data'=>$apply];
+    }
+
+    public function deal_apply_list($apply_inspection_data){
         $complete_status=array('1'=>'产品生产未完成，包装未完成','2'=>'产品生产完成，包装完成30%以下','3'=>'产品生产完成，包装完成30%-80%','4'=>'产品生产完成，包装完成80%以上');
-        $apply=ApplyInspection::where('status',$this->status)->paginate(100);
-        foreach($apply as $item)
+        foreach($apply_inspection_data as $item)
         {
             $item->apply_name=$item->user->name;
             $item->factory_name=$item->contract->manufacturer;
@@ -894,15 +938,17 @@ class ScheduleService
                 if($sku->isNew==1){
                     $item->new_quantity+=1;
                 }
-                $sku->pic=isset($sku_info['data'][$sku->sku])?current($sku_info['data'][$sku->sku]['sku_sys']->pic):'';
+                $sku->pic=isset($sku_info['data'][$sku->sku])&&isset($sku_info['data'][$sku->sku]['sku_sys']->pic)?current($sku_info['data'][$sku->sku]['sku_sys']->pic):'';
                 $new_sku[]=$sku;
             }
             $item->sku_num=$new_sku;
             unset($item->contract);
 
         }
-        return ['status' => 1, 'message' => '获取成功','data'=>$apply];
+
+        return $apply_inspection_data;
     }
+
     //申请验货列表
     public function apply_inspection_list()
     {

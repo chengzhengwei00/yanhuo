@@ -16,4 +16,6 @@ class ApplyInspection extends Model
         return $this->belongsTo('App\Http\Model\Contract');
     }
 
+
+
 }
