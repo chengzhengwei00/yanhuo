@@ -35,25 +35,25 @@ class InspectionController extends Controller
 
         foreach ($contents as $k => $contentValue) {
             $params=array();
-            if(!$contentValue['contract_id']){
-                return [
-                    'status'=>0,
-                    'message'=>'合同id不能为空'
-                ];;
-            }
+//            if(!$contentValue['contract_id']){
+//                return [
+//                    'status'=>0,
+//                    'message'=>'合同id不能为空'
+//                ];;
+//            }
 
 
             $params['inspection_group_id']=$inspection_group_id;
 
 
-            $applyInspection->where('contract_id',$contentValue['contract_id'])->update($params);
+            $applyInspection->where('id',$contentValue)->update($params);
 
         }
 
         return [
             'status'=>1,
             'message'=>'分配验货成功'
-        ];;
+        ];
 
 
     }

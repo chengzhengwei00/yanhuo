@@ -35,7 +35,7 @@ class ApplyInspectionRequest extends FormRequest
     {
         return [
             'inspection_group_name.required'     => '分配组名不能为空',
-            'contents.required'     => '合同id不能为空',
+            'contents.required'     => 'id不能为空',
         ];
     }
 }
