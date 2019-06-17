@@ -4,6 +4,7 @@ namespace App\Http\Service;
 
 use App\Http\Model\ContractStandard;
 use App\Http\Model\User;
+use function foo\func;
 use Illuminate\Http\Request;
 use App\Http\Model\Contract;
 use App\Http\Model\Standard;
@@ -199,4 +200,32 @@ class UserService
         return ['status'=>1,'message'=>'操作成功'];
     }
 
+    //
+    public function get_user_by_role($name){
+        $roleRes=Role::where('name',$name)->first();
+        if($roleRes){
+
+        }
+        $role_parent_id=$roleRes['id'];
+        $data=Role::where('parent_id',$role_parent_id)->get();
+        foreach ($data as $k=>$v){
+            $arr[]=$v['id'];
+        }
+        $res=UserRole::whereIn('role_id',$arr)->get();
+
+        foreach ($res as $k=>$v){
+            $arr2[]=$v['user_id'];
+        }
+        $res=User::whereIn('id',$arr2)->select('id','name')->get();
+        return $res;
+    }
+
+    public function get_user_by_role2($name='') {
+        $roleRes = Role::where('name', $name)->first();
+        $role_parent_id = $roleRes['id'];
+        return Role::where('parent_id',$role_parent_id)->with('users')->get();
+//        return User::with(['role'=>function ($query) use($role_parent_id){
+//            $query->where('parent_id',$role_parent_id)->first();
+//        }])->get();
+    }
 }

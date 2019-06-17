@@ -8,6 +8,7 @@ use App\Http\Model\ApplyInspection;
 use App\Http\Model\InspectionGroup;
 use App\Http\Requests\InspectionRequest;
 use App\Http\Service\ScheduleService;
+use App\Http\Service\UserService;
 use Exception;
 use App\Http\Service\InspectionService;
 use Illuminate\Http\Request;
@@ -20,7 +21,7 @@ class InspectionController extends Controller
 {
 
 
-    //分配验货
+    //分组
     public function distribute_inspections(ApplyInspectionRequest $request, InspectionGroup $inspectionGroup,ApplyInspection $applyInspection){
         $contents=$request->input('contents');
         $inspection_group_name=$request->input('inspection_group_name');
@@ -35,12 +36,6 @@ class InspectionController extends Controller
 
         foreach ($contents as $k => $contentValue) {
             $params=array();
-//            if(!$contentValue['contract_id']){
-//                return [
-//                    'status'=>0,
-//                    'message'=>'合同id不能为空'
-//                ];;
-//            }
 
 
             $params['inspection_group_id']=$inspection_group_id;
@@ -58,7 +53,7 @@ class InspectionController extends Controller
 
     }
 
-    //获得需要分配验货的列表
+    //获得需要分组的列表
     public function inspections_group_list(Request $request,Response $response){
 
         $scheduleService=new ScheduleService($request,$response);
@@ -153,6 +148,54 @@ class InspectionController extends Controller
         return $res;
     }
 
+    //选择组用户和时间
+    public function select_group_useranddate(Request $request,InspectionGroup $inspectionGroup,ApplyInspection $applyInspection){
+        $inspection_group_id=$request->input('inspection_group_id');
+        $user_id=$request->input('user_id');
+        $probable_inspection_date=$request->input('probable_inspection_date');
+        $early_inspection_date=$request->input('early_inspection_date');
+        if(strtotime($probable_inspection_date)<time()||strtotime($early_inspection_date)<time()){
+            return [
+                'status'=>0,
+                'message'=>'验货时间不能早于现在'
+            ];
+        }
 
+        $desc=$request->input('desc');
+        $id=$inspectionGroup->where('id',$inspection_group_id)->first();
+        if(!$id){
+            return [
+                'status'=>0,
+                'message'=>'数据不存在'
+            ];
+        }
+
+        $inspectionGroup->where('id',$inspection_group_id)->update(array('user_id'=>$user_id,'early_inspection_date'=>$early_inspection_date,'probable_inspection_date'=>$probable_inspection_date,'desc'=>$desc));
+
+        $applyInspection->where('inspection_group_id',$inspection_group_id)->update(array('status'=>2));
+        return [
+            'status'=>1,
+            'message'=>'选择成功'
+        ];
+    }
+    //选择组用户和时间列表
+    public function select_group_useranddate_list(UserService $userService){
+
+        //$name='质检部';
+        $data=$userService->get_user_by_role('质检部');
+        return [
+            'status'=>1,
+            'message'=>'选择成功',
+            'data'=>$data
+        ];
+        return $data;
+    }
+
+
+     //显示已分配验货的列表
+    public function select_distributed_list(InspectionService $inspectionService){
+        return $inspectionService->select_distributed_list();
+    }
 
 }
+

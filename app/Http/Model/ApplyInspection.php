@@ -16,6 +16,10 @@ class ApplyInspection extends Model
         return $this->belongsTo('App\Http\Model\Contract');
     }
 
+    public function inspection_group(){
+        return $this->belongsTo('App\Http\Model\InspectionGroup','inspection_group_id');
+    }
+
 
 
 }

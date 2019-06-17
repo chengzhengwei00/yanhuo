@@ -100,15 +100,17 @@ Route::group(['prefix' => 'v1','middleware' => 'auth:api'], function(){
     Route::post('schedule/update_schedule-isneed', 'Admin\ScheduleController@updateScheduleIsNeed');//
 
 
-    Route::post('inspection/create_inspection_batch', 'Admin\InspectionController@create_inspection_batch');//添加验货批次
-    Route::get('inspection/get_inspection_groups', 'Admin\InspectionController@get_inspection_groups');//获得验货批次列表
-    Route::post('inspection/distribute_inspections', 'Admin\InspectionController@distribute_inspections');//分配验货
-    Route::get('inspection/inspections_group_list', 'Admin\InspectionController@inspections_group_list');//分配验货列表
-    Route::get('inspection/inspections_group', 'Admin\InspectionController@inspections_group');//审核验货列表
+    //Route::post('inspection/create_inspection_batch', 'Admin\InspectionController@create_inspection_batch');//添加验货批次
+    //Route::get('inspection/get_inspection_groups', 'Admin\InspectionController@get_inspection_groups');//获得验货批次列表
+    Route::post('inspection/distribute_inspections', 'Admin\InspectionController@distribute_inspections');//分组
+    Route::get('inspection/inspections_group_list', 'Admin\InspectionController@inspections_group_list');//分组列表
+    Route::get('inspection/inspections_group', 'Admin\InspectionController@inspections_group');//分配验货列表
     Route::post('inspection/edit_inspections_group_name', 'Admin\InspectionController@edit_inspections_group_name');//修改组名
     Route::get('inspection/edit_inspections_group', 'Admin\InspectionController@edit_inspections_group');//修改组功能展示界面
     Route::post('inspection/store_inspections_group', 'Admin\InspectionController@store_inspections_group');//修改组数据
-
+    Route::post('inspection/select_group_user', 'Admin\InspectionController@select_group_useranddate');//选择组用户和时间
+    Route::get('inspection/select_group_useranddate_list', 'Admin\InspectionController@select_group_useranddate_list');//分配验货页面
+    Route::get('inspection/select_distributed_list', 'Admin\InspectionController@select_distributed_list');//已经分配验货数据
 
 
     Route::apiResource('schedule', 'Admin\ScheduleController');
