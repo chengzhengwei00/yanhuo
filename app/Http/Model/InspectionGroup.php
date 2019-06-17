@@ -15,4 +15,7 @@ class InspectionGroup extends Model
        return $this->hasMany('App\Http\Model\ApplyInspection','inspection_group_id');
     }
 
+    public function user(){
+        return $this->belongsTo('App\Http\Model\User','user_id');
+    }
 }

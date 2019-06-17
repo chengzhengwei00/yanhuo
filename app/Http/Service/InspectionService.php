@@ -42,6 +42,19 @@ class InspectionService
 
     //获得已经验货的数据
     public function select_distributed_list(){
-        return $this->apply_inspection->where('status',2)->has('inspection_group')->with('inspection_group')->get();
+        $data=$this->apply_inspection->where('status',2)->has('inspection_group')->with(['inspection_group'=>function($query){
+            $query->with(['user'=>function($query){
+                //$query->select('name');
+            }]);
+        }])->orderBy('id','desc')->get();
+
+        if(count($data)){
+            //foreach ($data as $item) {
+                //return json_decode($item->sku_num);
+                    $scheduleService=new ScheduleService($this->request,$this->response);
+            $data=$scheduleService->deal_apply_list($data);
+            //}
+        }
+        return $data;
     }
 }
