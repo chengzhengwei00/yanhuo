@@ -44,7 +44,7 @@ class InspectionService
     public function select_distributed_list(){
         $data=$this->apply_inspection->where('status',2)->has('inspection_group')->with(['inspection_group'=>function($query){
             $query->with(['user'=>function($query){
-                //$query->select('name');
+                $query->select('id','name');
             }]);
         }])->orderBy('id','desc')->get();
 
