@@ -154,7 +154,8 @@ class InspectionController extends Controller
         $user_id=$request->input('user_id');
         $probable_inspection_date=$request->input('probable_inspection_date');
         $early_inspection_date=$request->input('early_inspection_date');
-        if(strtotime($probable_inspection_date)<time()||strtotime($early_inspection_date)<time()){
+        $now_time=strtotime(date('Y-m-d',time()));
+        if(strtotime($probable_inspection_date)<$now_time||strtotime($early_inspection_date)<$now_time){
             return [
                 'status'=>0,
                 'message'=>'验货时间不能早于现在'
