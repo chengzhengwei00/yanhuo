@@ -120,11 +120,69 @@ class PermissionController extends Controller
     {
         return $this->permissionsService->edit_user_permission();
     }
-    //展示用户权限
+    //
+    /**
+     * 展示用户权限
+     *
+     * @SWG\Get(
+     *   path="/api/v1/permissions/user-permission",
+     *   tags={"展示用户权限"},
+     *   summary="展示用户权限",
+     *   description="展示用户权限。",
+     *   produces={"application/json"},
+     *   security={
+     *          {
+     *              "Bearer":{}
+     *          }
+     *   },
+     *   @SWG\Response(response="default", description="操作成功"),
+     *   @SWG\Parameter(
+     *         name="user_id",
+     *         in="query",
+     *         description="用户id",
+     *         required=true,
+     *         type="integer",
+     *    ),
+     * )
+     */
     public function getUserPermission()
     {;
         return $this->permissionsService->show_user_permission();
     }
+
+    //展示用户权限重构
+    public function getUserPermissionReconstruct()
+    {
+        $r=$this->request->route()->getActionName();
+        var_dump($r);die;
+        $res=$this->permissionsService->show_user_permission();
+        return $this->getTrees($res);
+
+    }
+    public function getTrees($res){
+        static $arr=array();
+        foreach ($res as $v) {
+            if(isset($v['child'])){
+                $arr=$this->getTrees($v['child']);
+
+            }else{
+                $user_limit=$v['user_limit'];
+                if(strpos($user_limit,'&&')){
+                    $user_limit_arr=explode('&&',$user_limit);
+                    $arr=array_merge($user_limit_arr,$arr);
+                }else{
+                    $arr[]=$user_limit;
+                }
+
+            }
+
+
+        }
+
+        return $arr;
+    }
+
+
     //展示所有权限
     public function getAllPermission()
     {;

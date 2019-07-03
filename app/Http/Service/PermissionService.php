@@ -122,6 +122,7 @@ class PermissionsService
                         'display_name'=>$data->display_name,
                         'user_limit'=>$data->user_limit,
                         'parent_id'=>$data->parent_id,
+                        'method_name'=>$data->method_name,
                         'display'=>1);
                 }else{
                     $array[]=array('id'=>$data->id,
@@ -129,6 +130,7 @@ class PermissionsService
                         'display_name'=>$data->display_name,
                         'user_limit'=>$data->user_limit,
                         'parent_id'=>$data->parent_id,
+                        'method_name'=>$data->method_name,
                         'display'=>0);
 
                 }
@@ -142,7 +144,9 @@ class PermissionsService
     public function show_user_permission( )
     {
         $user_id=$this->request->input('user_id');
-
+        if(!$user_id){
+            $user_id=Auth::id();
+        }
         if(User_has_permission::where('user_id',$user_id)->get()->count()>0)
         {
             return $this->user_permission($user_id);
@@ -181,11 +185,13 @@ class PermissionsService
             $display_name=$this->request->input('display_name');
             $user_limit=$this->request->input('user_limit');
             $parent_id=$this->request->input('parent_id');
+            $method_name=$this->request->input('method_name');
             $permission=  Permission::find($id);
             $permission->api_route = $api_route;
             $permission->display_name = $display_name;
             $permission->user_limit = $user_limit;
             $permission->parent_id = $parent_id;
+            $permission->method_name = $method_name;
             $permission->save();
         }catch (\Exception $e) {
             return ['status'=>0,'message'=>'修改失败'];
@@ -288,6 +294,7 @@ class PermissionsService
                     'display_name'=>$data->display_name,
                     'user_limit'=>$data->user_limit,
                     'parent_id'=>$data->parent_id,
+                    'method_name'=>$data->method_name,
                     'display'=>1);
             }else{
                 $array[]=array('id'=>$data->id,
@@ -295,6 +302,7 @@ class PermissionsService
                     'display_name'=>$data->display_name,
                     'user_limit'=>$data->user_limit,
                     'parent_id'=>$data->parent_id,
+                    'method_name'=>$data->method_name,
                     'display'=>0);
 
             }

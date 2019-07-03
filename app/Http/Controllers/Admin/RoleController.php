@@ -15,7 +15,7 @@ class RoleController extends Controller
      *     securityDefinition="Bearer",
      *     type="apiKey",
      *     in="header",
-     *     name="api_token"
+     *     name="Authorization"
      * )
      *
      */

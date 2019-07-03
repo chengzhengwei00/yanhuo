@@ -4,6 +4,7 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use App\Console\Commands\ScheduleUpdate;
 
 class Kernel extends ConsoleKernel
 {
@@ -13,7 +14,9 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+        //\App\Console\Commands\ScheduleEmail::class,
+        //\App\Console\Commands\SetTrackAll::class,
+        \App\Console\Commands\GetManageList::class,
     ];
 
     /**
@@ -24,8 +27,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
+
+       // $schedule->command('schedule:email')->everyMinute()->withoutOverlapping();
+        //$schedule->command('set_track_all')->everyMinute()->withoutOverlapping();
+        $schedule->command('get_manage_list')->everyMinute()->withoutOverlapping();
     }
 
     /**

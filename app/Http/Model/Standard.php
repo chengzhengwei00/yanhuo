@@ -8,6 +8,6 @@ class Standard extends Model
     //
     public function post()
     {
-        return $this->belongsTo('pp\Http\Model\Contract');
+        return $this->belongsTo('Http\Model\Contract');
     }
 }

@@ -99,9 +99,7 @@ class ContractController extends Controller
     }
     //获取合同
     /**
-     * 假设是项目中的一个API
-     *
-     * @SWG\Get(path="/contracts/get-contracts-for-api",
+     * @SWG\Get(path="/api/v1/contracts/get-contracts-for-api",
      *   tags={"获取合同"},
      *   summary="从宁波api获取合同",
      *   description="从宁波api获取合同。",
@@ -121,6 +119,10 @@ class ContractController extends Controller
     public function geUpdateContractStatus()
     {
         return $this->contractService->update_contract_status();
+    }
+
+    public function get_manage_list(ContractService $contractService){
+        return $contractService->get_manage_list();
     }
 
 

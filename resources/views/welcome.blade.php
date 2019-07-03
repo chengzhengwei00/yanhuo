@@ -1,95 +1,41 @@
-<!doctype html>
-<html lang="{{ app()->getLocale() }}">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+<!DOCTYPE html>
+<html lang="en">
 
-        <title>Laravel</title>
+<head>
+  <meta charset="utf-8" />
+  <title>鹰眼验货系统</title>
 
-        <!-- Fonts -->
-        <link href="https://fonts.googleapis.com/css?family=Raleway:100,600" rel="stylesheet" type="text/css">
+  <base href="/" />
 
-        <!-- Styles -->
-        <style>
-            html, body {
-                background-color: #fff;
-                color: #636b6f;
-                font-family: 'Raleway', sans-serif;
-                font-weight: 100;
-                height: 100vh;
-                margin: 0;
-            }
+  <meta name="viewport"
+    content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="msapplication-tap-highlight" content="no" />
 
-            .full-height {
-                height: 100vh;
-            }
+  <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
+  <link rel="stylesheet" href="assets/css/common.min.css">
 
-            .flex-center {
-                align-items: center;
-                display: flex;
-                justify-content: center;
-            }
+  <link rel="stylesheet" type="text/css" href="assets/ngx-datatable/index.css" />
+  <link rel="stylesheet" type="text/css" href="assets/ngx-datatable/material.css" />
+  <link rel="stylesheet" type="text/css" href="assets/ngx-datatable/dark.css" />
+ 
+  <!-- add to homescreen for ios -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <script>
+    var html = document.getElementsByTagName('html')[0],
+        pageWidth = html.getBoundingClientRect().width;
+        if(pageWidth > 750){
+            html.style.fontSize = 30 + 'px'
+        } else {
+            html.style.fontSize = pageWidth / 16 + 'px'
+        }
 
-            .position-ref {
-                position: relative;
-            }
+  </script>
+<link rel="stylesheet" href="styles.5fdb3d5054f7646493ec.css"></head>
 
-            .top-right {
-                position: absolute;
-                right: 10px;
-                top: 18px;
-            }
+<body>
+  <app-root></app-root>
+<script type="text/javascript" src="runtime.d458cd25a179149f0328.js"></script><script type="text/javascript" src="es2015-polyfills.2306969ab6640fe7476f.js" nomodule></script><script type="text/javascript" src="polyfills.345bad1220e572dc7440.js"></script><script type="text/javascript" src="main.010f086555195c45dec0.js"></script></body>
 
-            .content {
-                text-align: center;
-            }
-
-            .title {
-                font-size: 84px;
-            }
-
-            .links > a {
-                color: #636b6f;
-                padding: 0 25px;
-                font-size: 12px;
-                font-weight: 600;
-                letter-spacing: .1rem;
-                text-decoration: none;
-                text-transform: uppercase;
-            }
-
-            .m-b-md {
-                margin-bottom: 30px;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="flex-center position-ref full-height">
-            @if (Route::has('login'))
-                <div class="top-right links">
-                    @auth
-                        <a href="{{ url('/home') }}">Home</a>
-                    @else
-                        <a href="{{ route('login') }}">Login</a>
-                        <a href="{{ route('register') }}">Register</a>
-                    @endauth
-                </div>
-            @endif
-
-            <div class="content">
-                <div class="title m-b-md">
-                    Laravel
-                </div>
-
-                <div class="links">
-                    <a href="https://laravel.com/docs">Documentation</a>
-                    <a href="https://laracasts.com">Laracasts</a>
-                    <a href="https://laravel-news.com">News</a>
-                    <a href="https://forge.laravel.com">Forge</a>
-                    <a href="https://github.com/laravel/laravel">GitHub</a>
-                </div>
-            </div>
-        </div>
-    </body>
 </html>

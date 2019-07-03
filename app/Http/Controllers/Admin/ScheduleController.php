@@ -25,9 +25,23 @@ class ScheduleController extends Controller
         $this->request=$request;
     }
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
+     * @SWG\Get(path="/api/v1/schedule",
+     *   tags={"状态列表"},
+     *   summary="状态列表",
+     *   description="状态列表",
+     *   operationId="getContractsForApi",
+     *   produces={"application/json"},
+     *   @SWG\Response(response="default", description="操作成功"),
+     *   @SWG\Response(
+     *     response=200,
+     *     description="状态列表"
+     *   ),
+     *   security={
+     *          {
+     *              "Bearer":{}
+     *          }
+     *   },
+     * )
      */
     public function index()
     {
@@ -90,41 +104,10 @@ class ScheduleController extends Controller
         return $this->scheduleService->view($id);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
 
-    }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update($id)
-    {
-        //
 
-    }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
-    }
     //历史跟单记录
     public function getHistory( )
     {
@@ -137,40 +120,128 @@ class ScheduleController extends Controller
 
         return $this->scheduleService->history_view();
     }
-    //历史跟单记录
+    //
+    /**
+     * 获得合同列表
+     *
+     * @SWG\Get(
+     *   path="/api/v1/schedule/contract-list",
+     *   tags={"获得合同列表"},
+     *   summary="获得合同列表",
+     *   description="获得合同列表",
+     *   produces={"application/json"},
+     *   security={
+     *          {
+     *              "Bearer":{}
+     *          }
+     *   },
+     *   @SWG\Response(response="default", description="操作成功"),
+     * )
+     */
     public function getContractList( )
     {
 
         return $this->scheduleService->contract_list();
     }
+
+
     //申请验货
     public function postApplyInspection( )
     {
 
         return $this->scheduleService->apply_inspection();
     }
-    //申请验货列表
-    public function getApplyInspectionList( )
-    {
 
-        return $this->scheduleService->apply_inspection_list();
+
+
+
+
+
+
+
+    /**
+     * 申请验货列表
+     *
+     * @SWG\Get(
+     *   path="/api/v1/schedule/apply-inspection-list",
+     *   tags={"申请验货列表"},
+     *   summary="申请验货列表",
+     *   description="申请验货列表",
+     *   produces={"application/json"},
+     *   security={
+     *          {
+     *              "Bearer":{}
+     *          }
+     *   },
+     *   @SWG\Response(response="default", description="操作成功"),
+     * )
+     */
+    public function getApplyInspectionList(Request $request)
+    {
+//        $where[]=array('apply_inspections.inspection_group_id','=',0);
+//
+//        $params['status']=0;
+//        $params['where']=$where;
+
+
+
+
+
+
+        $params['status']=array(0);
+        $order_by=$request->input('order_by');
+        if(isset($order_by)){
+            $params['order_by']=$order_by;
+        }
+        return $this->scheduleService->apply_list_by_address($params);
+
+        //return $this->scheduleService->apply_inspection_list();
     }
-    //提交质检部
+    //
+    /**
+     * 提交质检部
+     *
+     * @SWG\Post(
+     *   path="/api/v1/schedule/post-inspection-department",
+     *   tags={"提交质检部"},
+     *   summary="提交质检部",
+     *   description="提交质检部。",
+     *   produces={"application/json"},
+     *   security={
+     *          {
+     *              "Bearer":{}
+     *          }
+     *   },
+     *   @SWG\Response(response="default", description="操作成功"),
+     *   @SWG\Parameter(
+     *         name="id",
+     *         in="formData",
+     *         description="验货id",
+     *         required=true,
+     *         type="integer",
+     *    ),
+     * )
+     */
     public function postPostInspectionDepartment( )
     {
 
         return $this->scheduleService->post_inspection_department();
     }
-    //任务五列表
-    public function getApplyDepartmentList( )
+
+
+    //获得验货列表
+    public function getApplyDepartmentList( Request $request)
     {
-        return $this->scheduleService->apply_department_list();
+        //return $this->scheduleService->apply_department_list();
+
+        $params['status']=array(1,2);
+        $order_by=$request->input('order_by');
+        if(isset($order_by)){
+            $params['order_by']=$order_by;
+        }
+
+        return $this->scheduleService->apply_list_by_address($params);
     }
-    //延迟跟踪
-//    public function postDelayTrack()
-//    {
-//        return $this->scheduleService->delay_track();
-//    }
 
 
     //展示合同对schedule的需求状况
@@ -185,29 +256,7 @@ class ScheduleController extends Controller
         $arr['sku_list']=$contractService->sku_list($contract_id);
         $arr['schedule_list_select']=$contractScheduleService->getScheduleIsNeedSelect($contract_id);
         return $arr;
-        //获得所有schedule
-//        $scheduleListRes=$this->scheduleService->list();
-//        $scheduleList=$scheduleListRes['data'];
-//
-//        //获得当前合同有需求的schedule列表
-//        $contract_id=$this->request->get('contract_id');
-//        $contractScheduleDataRes=$contractScheduleService->getSchedulesByContract($contract_id);
-////return $contractScheduleDataRes;
-//        $scheduleListNew=$scheduleList;
-//        if($contractScheduleDataRes&&$contractScheduleDataRes['data']){
-//
-//            foreach ($contractScheduleDataRes['data'] as $item) {
-//                foreach ($scheduleList as $scheduleKey=> $scheduleItem) {
-//                   //$scheduleListNew[$scheduleKey]['is_need']=0;
-//                   if($item['schedule_id']==$scheduleItem['id']){
-//                       $scheduleListNew[$scheduleKey]['is_need']=1;
-//                       continue;
-//                   }
-//                }
-//            }
-//
-//        }
-//        return $scheduleListNew;
+
 
 
     }
@@ -271,6 +320,13 @@ class ScheduleController extends Controller
         $log='恢复跟踪成功'.date('Y-m-d',$time);
         Log::info($log);
     }
+
+    //更新合同表的进度
+    public function update_schedule_contracts_all(ScheduleService $scheduleService){
+        return $scheduleService->update_schedule_contracts_all();
+    }
+
+
 
 
 

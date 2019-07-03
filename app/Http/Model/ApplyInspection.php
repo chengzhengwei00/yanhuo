@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ApplyInspection extends Model
 {
+    //private  $time=false;
     //
     public function user()
     {

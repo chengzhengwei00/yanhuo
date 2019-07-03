@@ -2,12 +2,15 @@
 
 namespace App\Http\Service;
 
+use App\Http\Model\ManageList;
+use App\Http\Model\User;
 use Illuminate\Http\Request;
 use App\Http\Model\Contract;
 use App\Http\Model\ContractStandard;
 use App\Http\Model\Standard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Exception;
 
 class ContractService
 {
@@ -159,7 +162,7 @@ class ContractService
                 unset($sku_sys->pictures);
                 $description->InfoData->contract_id=$contract_id;//添加合同id
                 $sku_standard[$sku_sys->ProductCode]['sku_sys']=$description->InfoData;
-                $sku_list[]=array('name'=>$sku_sys->ChineseName,'pic'=>isset($sku_sys->pic)?current($sku_sys->pic):'','sku'=>$sku_sys->ProductCode,'Count'=>$sku_sys->Count,'detail_counts'=>$sku_sys->DetailCount);
+                $sku_list[]=array('name'=>$sku_sys->ChineseName,'rate_container'=>$sku_sys->RateContainer,'container_num'=>$sku_sys->DetailCount/$sku_sys->RateContainer,'pic'=>isset($sku_sys->pic)?current($sku_sys->pic):'','sku'=>$sku_sys->ProductCode,'Count'=>$sku_sys->Count,'detail_counts'=>$sku_sys->DetailCount);
             }
 
 
@@ -202,5 +205,49 @@ class ContractService
         $data=$this->analysis($id);
         return $data['contract_info'];
     }
+    //获取业务负责人信息
+    public function get_manage_list(){
+
+        try{
+        $numberlist=array();
+        $userlist=array();
+        $res = curl('http://114.55.32.144:443/productmgr/QueryManageListRAPI',
+            array('userid' => 'user@api', 'password' => 'password@api','userlist'=>$userlist,'numberlist'=>$numberlist),
+            0);
+        $res=json_decode($res,true);
+
+        if(isset($res['IsSuccess'])&&$res['IsSuccess']){
+            ManageList::truncate();
+
+            foreach ($res['Data'] as $i) {
+                //根据工号去用户表获得用户id和用户名
+                $user_info=User::where('company_no',$i['WorkNumber'])->select('id')->first();
+
+                if($user_info){
+                    foreach ($i['ProductList'] as $ip) {
+                        $manage_list_obj=new ManageList();
+                        $manage_list_obj->user_id=$user_info->id;
+                        $manage_list_obj->work_number=$i['WorkNumber'];
+                        $manage_list_obj->name=$i['UserID'];
+                        $manage_list_obj->manager_type=$i['ManagerType'];
+                        $manage_list_obj->manager_type_name=$i['ManagerTypeName'];
+                        $manage_list_obj->sku=$ip['ProductCode'];
+                        $manage_list_obj->sku_chinese_name=$ip['Name'];
+                        $manage_list_obj->save();
+                    }
+                }
+
+
+            }
+
+
+        }
+
+        }catch(Exception $e){
+            return $e->getMessage();
+        }
+
+    }
+
 
 }

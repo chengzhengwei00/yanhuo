@@ -21,6 +21,9 @@ Route::group(['prefix' => 'v1'], function(){
     Route::get('swagger/json', 'SwaggerController@getJson');
 	Route::get('contracts/get-contracts-for-api', 'Admin\ContractController@getContractsForApi');//获取验货标准接口
     Route::get('contracts/update-contracts-status', 'Admin\ContractController@geUpdateContractStatus');//获取验货标准接口
+    Route::get('contract/get_manage_list', 'Admin\ContractController@get_manage_list');
+
+
 
 
 });
@@ -61,6 +64,11 @@ Route::group(['prefix' => 'v1','middleware' => 'auth:api'], function(){
     Route::get('permissions/role-permission', 'Admin\PermissionController@getRolePermission');//展示角色权限
     Route::get('permissions/user-role-permission', 'Admin\PermissionController@getUserRolePermission');//展示角色权限
     Route::post('permissions/gave-permission', 'Admin\PermissionController@postGavePermission');//展示角色权限
+//    Route::get('permissions/get_user_permission_reconstruct', 'Admin\PermissionController@getUserPermissionReconstruct')
+//        ->middleware('checkPromission');//
+    Route::get('permissions/get_user_permission_reconstruct', 'Admin\PermissionController@getUserPermissionReconstruct');//
+
+
 
     Route::apiResource('permissions', 'Admin\PermissionController');
     //任务控制器
@@ -89,34 +97,50 @@ Route::group(['prefix' => 'v1','middleware' => 'auth:api'], function(){
     Route::get('schedule/history', 'Admin\ScheduleController@getHistory');//订单跟踪历史记录列表
     Route::get('schedule/history-view', 'Admin\ScheduleController@getHistoryView');//订单跟踪历史记录详情
     Route::get('schedule/contract-list', 'Admin\ScheduleController@getContractList');//订单跟踪列表
+//    Route::post('schedule/apply-inspection', 'Admin\ScheduleController@postApplyInspection')->middleware('checkPromission');//申请验货post
+//    Route::get('schedule/apply-inspection-list', 'Admin\ScheduleController@getApplyInspectionList')->middleware('checkPromission');//申请验货list
     Route::post('schedule/apply-inspection', 'Admin\ScheduleController@postApplyInspection');//申请验货post
     Route::get('schedule/apply-inspection-list', 'Admin\ScheduleController@getApplyInspectionList');//申请验货list
+
     Route::post('schedule/post-inspection-department', 'Admin\ScheduleController@postPostInspectionDepartment');//提交质检部
-    Route::get('schedule/apply-department-list', 'Admin\ScheduleController@getApplyDepartmentList');//申请验货list
+    Route::get('schedule/apply-department-list', 'Admin\ScheduleController@getApplyDepartmentList');//
     Route::get('schedule/delay-track', 'Admin\ScheduleController@setDelayTrack');//延迟跟踪
     Route::get('schedule/set-track', 'Admin\ScheduleController@setTrack');//恢复跟踪
     Route::get('schedule/set-track-all', 'Admin\ScheduleController@setTrackAll');//批量恢复跟踪
     Route::get('schedule/schedule-isneed', 'Admin\ScheduleController@getScheduleIsNeed');//
     Route::post('schedule/update_schedule-isneed', 'Admin\ScheduleController@updateScheduleIsNeed');//
+    Route::get('schedule/update_schedule_contracts_all', 'Admin\ScheduleController@update_schedule_contracts_all');//
 
 
-    //Route::post('inspection/create_inspection_batch', 'Admin\InspectionController@create_inspection_batch');//添加验货批次
-    //Route::get('inspection/get_inspection_groups', 'Admin\InspectionController@get_inspection_groups');//获得验货批次列表
-    Route::post('inspection/distribute_inspections', 'Admin\InspectionController@distribute_inspections');//分组
+    Route::post('inspection/distribute_inspections', 'Admin\InspectionController@distribute_groups');//分组
     Route::get('inspection/inspections_group_list', 'Admin\InspectionController@inspections_group_list');//分组列表
     Route::get('inspection/inspections_group', 'Admin\InspectionController@inspections_group');//分配验货列表
     Route::post('inspection/edit_inspections_group_name', 'Admin\InspectionController@edit_inspections_group_name');//修改组名
     Route::get('inspection/edit_inspections_group', 'Admin\InspectionController@edit_inspections_group');//修改组功能展示界面
     Route::post('inspection/store_inspections_group', 'Admin\InspectionController@store_inspections_group');//修改组数据
-    Route::post('inspection/select_group_user', 'Admin\InspectionController@select_group_useranddate');//选择组用户和时间
-    Route::get('inspection/select_group_useranddate_list', 'Admin\InspectionController@select_group_useranddate_list');//分配验货页面
+    Route::post('inspection/select_group_user', 'Admin\InspectionController@distribute_inspections');//分配验货
+    Route::get('inspection/select_group_useranddate_list', 'Admin\InspectionController@select_group_useranddate_list');//选择组用户和分配时间列表
     Route::get('inspection/select_distributed_list', 'Admin\InspectionController@select_distributed_list');//已经分配验货数据
+    Route::get('inspection/reset_apply_inspection', 'Admin\InspectionController@reset_apply_inspection');//撤销申请验货
+    Route::get('inspection/reset_inspection_group', 'Admin\InspectionController@reset_inspection_group');//撤销组
+
+
+
+    Route::get('inspection/sendemail', 'Admin\InspectionController@sendemail');
+
+
+
+
 
 
     Route::apiResource('schedule', 'Admin\ScheduleController');
     //上传文件
     Route::post('file/upload', 'Admin\FileController@postUpload');
     //swagger
+
+
+    //inspection/distribute_inspections->distribute_groups
+    //inspection/select_group_user->distribute_inspections
 
 
 });
