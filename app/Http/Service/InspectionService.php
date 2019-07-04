@@ -20,20 +20,44 @@ class InspectionService
     //获得各组以及其包含的数据
     public function inspection_groups_list()
     {
-        $data=$this->inspection_group->whereHas('apply_inspections',function ($query){
-            $query->where('status', 1)->where('is_reset',0);
-        })->with('apply_inspections')->orderBy('name','desc')->get();
+//        return $data=$this->inspection_group->whereHas('apply_inspections',function ($query){
+//            $query->where('status', 1)->where('is_reset',0);
+//        })->with(['apply_inspections'=>function($query){
+//            $query->with(['contract'=>function($query){
+//                $query->select('id','create_user as buyer_name');
+//            },'user'=>function($query){
+//                $query->select('id','name');
+//            }]);
+//        }])->orderBy('name','desc')->get();
+//
+//        if(count($data)){
+//            foreach ($data as $item) {
+//                if($item->apply_inspections){
+//                    $scheduleService=new ScheduleService($this->request,$this->response);
+//                    $item->apply_inspections=$scheduleService->deal_apply_list($item->apply_inspections);
+//                }
+//           }
+//        }
+//
+//        return $data;
 
-        if(count($data)){
-            foreach ($data as $item) {
-                if($item->apply_inspections){
-                    $scheduleService=new ScheduleService($this->request,$this->response);
-                    $item->apply_inspections=$scheduleService->deal_apply_list($item->apply_inspections);
-                }
-           }
+        $inspection_group_datas=$this->inspection_group->whereHas('apply_inspections',function ($query){
+               $query->where('status', 1)->where('is_reset',0);
+         })->get();
+        $params=array('status'=>1);
+        foreach ($inspection_group_datas as $item) {
+
+            if($item['id']){
+                $params['inspection_group_id']=$item['id'];
+            }
+            $scheduleService=new ScheduleService($this->request,$this->response);
+            $apply_inspections=$scheduleService->apply_list_by_address($params);
+            $item['apply_inspections']=$apply_inspections['data'];
         }
+         return $inspection_group_datas;
 
-        return $data;
+
+
     }
 
     //

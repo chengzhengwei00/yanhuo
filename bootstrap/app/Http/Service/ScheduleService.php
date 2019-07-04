@@ -334,6 +334,7 @@ class ScheduleService
         $inspection_date = $this->request->input('inspection_date');
         $file_service=new FileService($this->request);
         $replace_content_photo=[];
+
         foreach($content as $c)
         {
             unset($c['photo']);

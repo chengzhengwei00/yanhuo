@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Service\PermissionsService;
+use App\Http\Model\ManageList;
 
 class LoginController extends Controller
 {
@@ -60,6 +61,19 @@ class LoginController extends Controller
             $user = $this->guard()->user();
             $user->generateToken();
             $user_permission=$permissionsService->show_user_role_permission_by_id($user->id);
+            $department='';
+             if(isset($user->company_no)&&$user->company_no){
+                 $manage_list_data=ManageList::where('work_number',$user->company_no)->get();
+                 if(count($manage_list_data)>0){
+                     $department='manager';
+                 }
+             }
+            $user->department=$department;
+
+
+
+
+
             return response()->json([
                 'status'=>1,
                 'message'=>'登录成功',

@@ -17,6 +17,7 @@ use App\Http\Service\PermissionsService;
 use App\Http\Model\ApplyInspection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ScheduleService
 {
@@ -69,6 +70,7 @@ class ScheduleService
         $permission=$user_permission->show_user_role_permission_by_id($current_user->id);
 
         $show_all=0;
+        //$department='';
         foreach($permission['data'] as $datum)
         {
             if($datum->user_limit=='show-all-orders') $show_all=1;
@@ -82,6 +84,7 @@ class ScheduleService
                 //得到该用户负责的合同
                 $contract_arr=$this->getUserContract($current_user['company_no']);
                 if(count($contract_arr)>0){
+                    //$department='manager';
                     $data=Contract::whereIn('id',$contract_arr);
                 }else{
                     $data=Contract::where('user_list','like',"%$user_name%");
@@ -211,6 +214,10 @@ class ScheduleService
             unset($item->json_data);
         }
 
+//        $newData=[
+//            'department'=>$department,
+//            'data'=>$data,
+//        ];
         return ['status'=>'1','message'=>'获取成功','data'=>$data];
     }
 
@@ -390,8 +397,11 @@ class ScheduleService
         return $i;
     }
     //状态列表
-    public function list()
+    public function list($where=array())
     {
+        if($where){
+            return ['status'=>1,'message'=>'获取成功','data'=>Schedule::where($where)->orderBy('sort','asc')->get()];
+        }
         return ['status'=>1,'message'=>'获取成功','data'=>Schedule::orderBy('sort','asc')->get()];
     }
 
@@ -562,7 +572,7 @@ class ScheduleService
             $count=0;
 
             $file_service=new FileService($this->request);
-
+            $except_count=0;
             foreach($status as $value)
             {
 
@@ -573,11 +583,11 @@ class ScheduleService
                 if(isset($value['schedule_id']) && $value['schedule_id']==42) {
 
                     $repeat_record=1;
+                    $except_count=1;
                 }
 
             }
-
-
+            $count=$count-$except_count;
             //上传图片
             foreach($status as &$value)
             {
@@ -626,8 +636,6 @@ class ScheduleService
 
 
             $count_schedule_contract=$this->count_schedule_contract($contract_id);
-
-
             //更新合同表里面进度
             $break_update=$this->break_update($contract_id);
             $contract=Contract::find($contract_id);
@@ -639,7 +647,8 @@ class ScheduleService
             $contract->save();
 
             return ['status'=>1,'message'=>'更新成功'];
-        }catch (\Exception $exception)
+        }
+        catch (\Exception $exception)
         {
             return ['status'=>0,'message'=>'更新失败'];
         }
@@ -649,7 +658,8 @@ class ScheduleService
     //获得有需要的schedule统计数
     private function count_schedule_contract($contract_id){
         $contractScheduleService=new ContractScheduleService($this->request,$this->response);
-        $Schedule=$contractScheduleService->getScheduleIsNeed($contract_id);
+        $where[]=array('id','!=','42');
+        $Schedule=$contractScheduleService->getScheduleIsNeed($contract_id,$where);
         $total_count=0;
         foreach ($Schedule as $ScheduleItem) {
             if(isset($ScheduleItem['is_need'])&&$ScheduleItem['is_need']==1){
@@ -673,25 +683,30 @@ class ScheduleService
         $data=Contract::select('id')->get();
 
         foreach ($data as $v) {
-            $v['id']=36;
             $UserSchedule=UserSchedule::where('contract_id',$v['id'])->orderBy('id','desc')->first();//最新更新记录
 
             //计算勾选的数量
+            $except_count=0;
             if($UserSchedule) {
                 $count=(array)json_decode($UserSchedule->status);
                 $i=0;
                 foreach ($count as $c) {
                     if(isset($c->status) && $c->status==1)$i++;
+//                    if($c->schedule_id==42) {
+//                        $except_count=1;
+//                    }
                 }
                 $complete_counts=$i;
             }else{
                 $complete_counts=0;
             }
-
+            $complete_counts=$complete_counts-$except_count;
             $total_count=$this->count_schedule_contract($v['id']);
-            $percent=round(($complete_counts/$total_count)*100,2).'%';
-            if($percent>1){
+            $t=$complete_counts/$total_count;
+            if($t>1){
                 $percent='100%';
+            }else{
+                $percent=round($t*100,2).'%';
             }
             Contract::where('id',$v['id'])->update(['progress'=>$percent]);
 
@@ -713,8 +728,9 @@ class ScheduleService
         unset($contract_info->json_data);
         $now_to_sign_week=round((time()-strtotime($contract_info->sign_time))/3600/24/7);
         $week=[];
-        for($i=1;$i<=$now_to_sign_week+1;$i++)
+        for($i=-2;$i<=$now_to_sign_week+1;$i++)
         {
+            if($i==0) continue;
             if(date('w',strtotime($contract_info->sign_time))==1)
             {
                 $week_Monday=date('Y-m-d',strtotime("$i Monday", strtotime($contract_info->sign_time)));
@@ -937,7 +953,9 @@ class ScheduleService
 
 
                 }
+
             }
+
             foreach($content as $c)
             {
                 unset($c['photo']);
@@ -948,16 +966,12 @@ class ScheduleService
             {
                 $c['photo']=$new_photo;
             }
-            //return $replace_content_photo;
             $ApplyInspection=ApplyInspection::find($apply->id);
             $ApplyInspection->sku_num=json_encode($replace_content_photo);
 
 
 
-
             $ApplyInspection->save();
-
-
             return ['status' => 1, 'message' => '申请成功'];
         }catch (\Exception $e)
         {
@@ -1005,6 +1019,9 @@ class ScheduleService
             ->join('users','apply_inspections.apply_user','=','users.id')
             ->whereIn('apply_inspections.status',$status)
             ->where('apply_inspections.is_reset',0);
+        if(isset($params['inspection_group_id'])){
+            $apply=$apply->where('inspection_group_id',$params['inspection_group_id']);
+        }
         if(isset($params['where'])&&is_array($params['where'])){
             $where=$params['where'];
             $apply=$apply->where($where)

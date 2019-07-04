@@ -37,9 +37,10 @@ class ContractScheduleService
     }
 
 
-    public function getScheduleIsNeed($contract_id){
+    public function getScheduleIsNeed($contract_id,$where=array()){
         $scheduleService=new ScheduleService($this->request,$this->response);
-        $scheduleListRes=$scheduleService->list();
+
+        $scheduleListRes=$scheduleService->list($where);
         //return $scheduleListRes;
 
 

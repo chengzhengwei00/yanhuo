@@ -188,7 +188,7 @@ class ScheduleController extends Controller
 
 
 
-        $params['status']=array(0);
+        $params['status']=array(0,1,2);
         $order_by=$request->input('order_by');
         if(isset($order_by)){
             $params['order_by']=$order_by;

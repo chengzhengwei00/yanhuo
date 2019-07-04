@@ -238,34 +238,34 @@ class InspectionController extends Controller
      * )
      */
 
-    public function store_inspections_group(Request $request,ApplyInspection $applyInspection){
-        $inspection_group_id=$request->input('inspection_group_id');
-        $contract_ids=$request->input('contract_ids');
-
-        if(!$inspection_group_id||!$contract_ids||!is_array($contract_ids)){
-            return [
-                'status'=>0,
-                'message'=>'参数错误'
-            ];
-        }
-
-        //获得该组下面所有合同id
-        $idsRes=$applyInspection->where('inspection_group_id',$inspection_group_id)->select('contract_id')->paginate(100);
-
-        $ids=array();
-        foreach ($idsRes as $id) {
-            $ids[]=$id['contract_id'];
-        }
-        $del_arr=array_diff($ids,$contract_ids);
-        $add_arr=array_diff($contract_ids,$ids);
-        $applyInspection->whereIn('contract_id',$del_arr)->where('inspection_group_id',$inspection_group_id)->update(['inspection_group_id'=>0]);
-        $applyInspection->whereIn('contract_id',$add_arr)->where('inspection_group_id',0)->update(['inspection_group_id'=>$inspection_group_id]);
-
-        return [
-            'status'=>1,
-            'message'=>'修改成功'
-        ];
-    }
+//    public function store_inspections_group(Request $request,ApplyInspection $applyInspection){
+//        $inspection_group_id=$request->input('inspection_group_id');
+//        $contract_ids=$request->input('contract_ids');
+//
+//        if(!$inspection_group_id||!$contract_ids||!is_array($contract_ids)){
+//            return [
+//                'status'=>0,
+//                'message'=>'参数错误'
+//            ];
+//        }
+//
+//        //获得该组下面所有合同id
+//        $idsRes=$applyInspection->where('inspection_group_id',$inspection_group_id)->select('contract_id')->paginate(100);
+//
+//        $ids=array();
+//        foreach ($idsRes as $id) {
+//            $ids[]=$id['contract_id'];
+//        }
+//        $del_arr=array_diff($ids,$contract_ids);
+//        $add_arr=array_diff($contract_ids,$ids);
+//        $applyInspection->whereIn('contract_id',$del_arr)->where('inspection_group_id',$inspection_group_id)->update(['inspection_group_id'=>0]);
+//        $applyInspection->whereIn('contract_id',$add_arr)->where('inspection_group_id',0)->update(['inspection_group_id'=>$inspection_group_id]);
+//
+//        return [
+//            'status'=>1,
+//            'message'=>'修改成功'
+//        ];
+//    }
 
 
 
@@ -516,12 +516,14 @@ class InspectionController extends Controller
      * )
      */
     public function distribute_inspections(Request $request,InspectionGroup $inspectionGroup,ApplyInspection $applyInspection){
-        $inspection_group_id=$request->input('inspection_group_id');
+        $contract_id=$request->input('contract_id');
         $user_id=$request->input('user_id');
-        $probable_inspection_date=$request->input('probable_inspection_date');
+        $inspection_group_id=$request->input('inspection_group_id');
+        //$probable_inspection_date=$request->input('probable_inspection_date');
         $early_inspection_date=$request->input('early_inspection_date');
         $now_time=strtotime(date('Y-m-d',time()));
-        if(strtotime($probable_inspection_date)<$now_time||strtotime($early_inspection_date)<$now_time){
+
+        if(strtotime($early_inspection_date)<$now_time){
             return [
                 'status'=>0,
                 'message'=>'验货时间不能早于现在'
@@ -529,7 +531,7 @@ class InspectionController extends Controller
         }
 
         $desc=$request->input('desc');
-        $id=$inspectionGroup->where('id',$inspection_group_id)->first();
+        $id=$applyInspection->where('contract_id',$contract_id)->first();
         if(!$id){
             return [
                 'status'=>0,
@@ -541,9 +543,9 @@ class InspectionController extends Controller
             $user_id=(array)$user_id;
         }
 
-        $inspectionGroup->where('id',$inspection_group_id)->update(array('user_id'=>serialize($user_id),'early_inspection_date'=>$early_inspection_date,'probable_inspection_date'=>$probable_inspection_date,'desc'=>$desc));
+        $inspectionGroup->where('id',$inspection_group_id)->update(array('user_id'=>serialize($user_id),'desc'=>$desc));
 
-        $applyInspection->where('inspection_group_id',$inspection_group_id)->update(array('status'=>2));
+        $applyInspection->where('inspection_group_id',$inspection_group_id)->where('contract_id',$contract_id)->update(array('status'=>2,'early_inspection_date'=>$early_inspection_date));
         return [
             'status'=>1,
             'message'=>'选择成功'
