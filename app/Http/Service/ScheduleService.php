@@ -172,32 +172,33 @@ class ScheduleService
 
             $UserSchedule=UserSchedule::where('contract_id',$item->id)->orderBy('id','desc')->first();//最新更新记录
             //计算勾选的数量
+            $except_count=0;
             if($UserSchedule) {
                 $count=(array)json_decode($UserSchedule->status);
                 $i=0;
                 foreach ($count as $c) {
                     if(isset($c->status) && $c->status==1)$i++;
+
+                    //停滞周数，用来标记停滞记录
+                    if(isset($value->schedule_id) && $c->schedule_id==42) {
+
+                        $repeat_record=1;
+                        $except_count=1;
+                    }
                 }
-                $item->quantity=$i;
+                $item->quantity=$i-$except_count;
             }else{
                 $item->quantity=0;
             }
 
-            $contractScheduleService=new ContractScheduleService($this->request,$this->response);
-            $Schedule=$contractScheduleService->getScheduleIsNeed($item->id);
-            $total_count=0;
-            foreach ($Schedule as $ScheduleItem) {
-                if(isset($ScheduleItem['is_need'])&&$ScheduleItem['is_need']==1){
-                    $total_count++;
-                }
-                if(isset($ScheduleItem['is_must'])&&$ScheduleItem['is_must']==1){
-                    $total_count++;
-                }
-            }
-            if($total_count==0){
-                $total_count=count($Schedule);
-            }
 
+
+
+
+
+            $contractScheduleService=new ContractScheduleService($this->request,$this->response);
+
+            $total_count=$this->count_schedule_contract($item->id);
             $contractScheduleList=$contractScheduleService->getSchedulesByContract($item->id);
             $mustSelectStatus=count($contractScheduleList['data']);
             $item->must_select_status=$mustSelectStatus?1:0;
@@ -316,7 +317,7 @@ class ScheduleService
         }
         //进度排序
         if($order_progress!=''){
-            $data=$data->orderBy('progress',$order_progress);
+            $data=$data->orderBy(DB::raw("progress+0"),$order_progress);
         }
 
 
