@@ -6,8 +6,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Model\ApplyInspection;
 use App\Http\Model\InspectionGroup;
-use App\Http\Model\ScheduleUpdateEmail;
-use App\Http\Requests\InspectionRequest;
 use App\Http\Service\ScheduleService;
 use App\Http\Service\UserService;
 use Exception;
@@ -16,140 +14,10 @@ use Illuminate\Http\Request;
 use App\Http\Requests\ApplyInspectionRequest;
 use App\Http\Model\ContractInspectionGroup;
 use Illuminate\Http\Response;
-use App\Http\Requests\InspectionGroupRequest;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\TestEmail;
-use App\Http\Service\ContractService;
 
 
 class InspectionController extends Controller
 {
-
-
-
-    //  distribute_groups
-    /**
-     * 分组
-     *
-     * @SWG\Post(
-     *   path="/api/v1/inspection/distribute_inspections",
-     *   tags={"分组"},
-     *   summary="分组",
-     *   description="分组。",
-     *   produces={"application/json"},
-     *   security={
-     *          {
-     *              "Bearer":{}
-     *          }
-     *   },
-     *   @SWG\Response(response="default", description="操作成功"),
-     *   @SWG\Parameter(
-     *         name="inspection_group_name",
-     *         in="formData",
-     *         description="验货组名",
-     *         required=true,
-     *         type="integer",
-     *    ),
-     *   @SWG\Parameter(name="contents", required=true, in="body",type="array",
-     *     @SWG\Schema(
-     *     type="array",
-     *     @SWG\Items(
-     *     required={"contract_ids"},
-     *     )
-     *     ),
-     *     description="合同id"
-     *   ),
-     * )
-     */
-    public function distribute_groups(ApplyInspectionRequest $request, InspectionGroup $inspectionGroup,ApplyInspection $applyInspection){
-        $contents=$request->input('contents');
-        $inspection_group_name=$request->input('inspection_group_name');
-        $res=$inspectionGroup->create(['name'=>$inspection_group_name]);
-        if(!$res){
-            return [
-                'status'=>0,
-                'message'=>'组名保存失败'
-            ];
-        }
-        $inspection_group_id=$res->id;
-
-        foreach ($contents as $k => $contentValue) {
-            $params=array();
-
-
-            $params['inspection_group_id']=$inspection_group_id;
-
-
-            $applyInspection->where('id',$contentValue)->update($params);
-
-        }
-
-        return [
-            'status'=>1,
-            'message'=>'分组成功'
-        ];
-
-
-    }
-
-    //
-    /**
-     * 验货批次列表
-     *
-     * @SWG\Get(
-     *   path="/api/v1/inspection/inspections_group_list",
-     *   tags={"验货批次列表"},
-     *   summary="验货批次列表",
-     *   description="验货批次列表。",
-     *   produces={"application/json"},
-     *   security={
-     *          {
-     *              "Bearer":{}
-     *          }
-     *   },
-     *   @SWG\Response(response="default", description="操作成功"),
-     * )
-     */
-    public function inspections_group_list(Request $request,Response $response){
-
-        $scheduleService=new ScheduleService($request,$response);
-        $where[]=array('apply_inspections.inspection_group_id','=',0);
-
-        $params['status']=1;
-        $params['where']=$where;
-        $order_by=$request->input('order_by');
-        if(isset($order_by)){
-            $params['order_by']=$order_by;
-        }
-
-        $inspections_group_list=$scheduleService->apply_list_by_address($params);
-
-        return $inspections_group_list;
-
-    }
-
-    //
-    /**
-     * 获得分配验货数据
-     *
-     * @SWG\Get(
-     *   path="/api/v1/inspection/inspections_group",
-     *   tags={"获得分配验货数据"},
-     *   summary="获得分配验货数据",
-     *   description="获得分配验货数据。",
-     *   produces={"application/json"},
-     *   security={
-     *          {
-     *              "Bearer":{}
-     *          }
-     *   },
-     *   @SWG\Response(response="default", description="操作成功"),
-     * )
-     */
-    public function inspections_group(InspectionService $inspectionService){
-        return $inspectionService->inspection_groups_list();
-
-    }
 
     //
     /**
@@ -323,6 +191,184 @@ class InspectionController extends Controller
 
 
 
+    //  distribute_groups
+    /**
+     * 提交分组数据
+     *
+     * @SWG\Post(
+     *   path="/api/v1/inspection/distribute_inspections",
+     *   tags={"分组"},
+     *   summary="分组",
+     *   description="分组。",
+     *   produces={"application/json"},
+     *   security={
+     *          {
+     *              "Bearer":{}
+     *          }
+     *   },
+     *   @SWG\Response(
+     *     response="default",
+     *     description="操作失败",
+     *     @SWG\Schema(
+     *          @SWG\Property(
+     *               property="status",
+     *               type="integer"
+     *          ),
+     *          @SWG\Property(
+     *               property="message",
+     *               type="string"
+     *          )
+     *      )
+     *   ),
+     *   @SWG\Parameter(
+     *         name="inspection_group_name",
+     *         in="formData",
+     *         description="验货组名",
+     *         required=true,
+     *         type="integer",
+     *    ),
+     *   @SWG\Parameter(name="contents", required=true, in="body",type="array",
+     *     @SWG\Schema(
+     *     type="array",
+     *     @SWG\Items(
+     *     required={"contract_ids"},
+     *     )
+     *     ),
+     *     description="合同id"
+     *   ),
+     * )
+     */
+    public function distribute_groups(ApplyInspectionRequest $request, InspectionGroup $inspectionGroup,ApplyInspection $applyInspection){
+        $contents=$request->input('contents');
+        $inspection_group_name=$request->input('inspection_group_name');
+        $res=$inspectionGroup->create(['name'=>$inspection_group_name]);
+        if(!$res){
+            return [
+                'status'=>0,
+                'message'=>'组名保存失败'
+            ];
+        }
+        $inspection_group_id=$res->id;
+
+        foreach ($contents as $k => $contentValue) {
+            $params=array();
+
+
+            $params['inspection_group_id']=$inspection_group_id;
+
+
+            $applyInspection->where('id',$contentValue)->update($params);
+
+        }
+
+        return [
+            'status'=>1,
+            'message'=>'分组成功'
+        ];
+
+
+    }
+
+    //
+    /**
+     * 验货批次列表
+     *
+     * @SWG\Get(
+     *   path="/api/v1/inspection/inspections_group_list",
+     *   tags={"验货批次列表"},
+     *   summary="验货批次列表",
+     *   description="验货批次列表。",
+     *   produces={"application/json"},
+     *   security={
+     *          {
+     *              "Bearer":{}
+     *          }
+     *   },
+     *   @SWG\Response(
+     *     response="default",
+     *     description="操作失败",
+     *     @SWG\Schema(
+     *          @SWG\Property(
+     *               property="status",
+     *               type="integer",
+     *          ),
+     *          @SWG\Property(
+     *               property="message",
+     *               type="string",
+     *          )
+     *      )
+     *   ),
+     *   @SWG\Parameter(
+     *         name="order_by",
+     *         in="formData",
+     *         description="排序",
+     *         type="string",
+     *    ),
+     * )
+     */
+    public function inspections_group_list(Request $request,Response $response){
+
+        $scheduleService=new ScheduleService($request,$response);
+        $where[]=array('apply_inspections.inspection_group_id','=',0);
+
+        $params['status']=1;
+        $params['where']=$where;
+        $order_by=$request->input('order_by');
+        if(isset($order_by)){
+            $params['order_by']=$order_by;
+        }
+
+        $inspections_group_list=$scheduleService->apply_list_by_address($params);
+
+        return $inspections_group_list;
+
+    }
+
+    //
+    /**
+     * 待分配验货列表
+     *
+     * @SWG\Get(
+     *   path="/api/v1/inspection/inspections_group",
+     *   tags={"获得分配验货数据"},
+     *   summary="获得分配验货数据",
+     *   description="获得分配验货数据。",
+     *   produces={"application/json"},
+     *   security={
+     *          {
+     *              "Bearer":{}
+     *          }
+     *   },
+     *   @SWG\Response(
+     *     response="default",
+     *     description="操作失败",
+     *     @SWG\Schema(
+     *          @SWG\Property(
+     *               property="status",
+     *               type="integer"
+     *          ),
+     *          @SWG\Property(
+     *               property="message",
+     *               type="string"
+     *          )
+     *      )
+     *   ),
+     * )
+     */
+    public function inspections_group(Request $request,InspectionService $inspectionService){
+        $where['status']=1;
+        $order_by=$request->input('order_by');
+        $where['order_by']=$order_by;
+        return $inspectionService->inspection_groups_list($where);
+
+    }
+
+
+
+
+
+
+
 
 
 
@@ -375,8 +421,12 @@ class InspectionController extends Controller
      *   @SWG\Response(response="default", description="操作成功"),
      * )
      */
-    public function select_distributed_list(InspectionService $inspectionService){
-        return $inspectionService->select_distributed_list();
+    public function select_distributed_list(Request $request,InspectionService $inspectionService){
+        $where['status']=2;
+        $order_by=$request->input('order_by');
+        $where['order_by']=$order_by;
+        return $inspectionService->inspection_groups_list($where);
+        //return $inspectionService->select_distributed_list();
     }
 
 
@@ -395,7 +445,20 @@ class InspectionController extends Controller
      *              "Bearer":{}
      *          }
      *   },
-     *   @SWG\Response(response="default", description="操作成功"),
+     *   @SWG\Response(
+     *     response="default",
+     *     description="操作失败",
+     *     @SWG\Schema(
+     *          @SWG\Property(
+     *               property="status",
+     *               type="integer"
+     *          ),
+     *          @SWG\Property(
+     *               property="message",
+     *               type="string"
+     *          )
+     *      )
+     *   ),
      *   @SWG\Parameter(
      *         name="id",
      *         in="query",
@@ -408,25 +471,8 @@ class InspectionController extends Controller
     public function reset_apply_inspection(Request $request,Response $response,ApplyInspection $applyInspection){
 
 
-
-        //得到申请验货id
-//        $id=$request->input('id');
-//        $apply_inspection_data=$applyInspection->where('id',$id)->first();
-//        if(!$apply_inspection_data&&!isset($apply_inspection_data->status)){
-//            return ['status'=>0,'message'=>'数据不存在'];
-//        }
-//        if($apply_inspection_data->is_reset==1){
-//            return ['status'=>0,'message'=>'数据已经撤销'];
-//
-//        }
-//        //获得验货数量
-//        $applyInspection->where('id',$id)->update(array('is_reset'=>1));
-//
-//        return ['status'=>1,'message'=>'撤销成功'];
-
-
         $id=$request->input('id');
-        $apply_inspection_data=$applyInspection->where('id',$id)->where('is_reset',0)->update(array('is_reset'=>1));
+        $apply_inspection_data=$applyInspection->where('id',$id)->whereIn('status',array(0,1,2))->where('is_reset',0)->update(array('is_reset'=>1));
         if($apply_inspection_data){
             return ['status'=>1,'message'=>'撤销成功'];
         }
@@ -437,7 +483,49 @@ class InspectionController extends Controller
 
     }
 
-    //撤销验货组回验货批次
+    //
+    /**
+     * 撤销验货组回验货批次
+     *
+     * @SWG\Get(
+     *   path="/api/v1/inspection/reset_inspection_group",
+     *   tags={"撤销验货组回验货批次"},
+     *   summary="撤销验货组回验货批次",
+     *   description="撤销验货组回验货批次。",
+     *   produces={"application/json"},
+     *   security={
+     *          {
+     *              "Bearer":{}
+     *          }
+     *   },
+     *   @SWG\Response(
+     *     response="default",
+     *     description="操作失败",
+     *     @SWG\Schema(
+     *          @SWG\Property(
+     *               property="status",
+     *               type="integer"
+     *          ),
+     *          @SWG\Property(
+     *               property="message",
+     *               type="string"
+     *          )
+     *      )
+     *   ),
+     *   @SWG\Parameter(
+     *         name="inspection_group_id",
+     *         in="query",
+     *         description="验货组id",
+     *         type="integer",
+     *    ),
+     *   @SWG\Parameter(
+     *         name="contract_id",
+     *         in="query",
+     *         description="合同id",
+     *         type="integer",
+     *    ),
+     * )
+     */
     public function reset_inspection_group(Request $request,ApplyInspection $applyInspection){
         //获得组id
         $inspection_group_id=$request->input('inspection_group_id');
@@ -453,7 +541,6 @@ class InspectionController extends Controller
             $res=$applyInspection->where('contract_id',$contract_id)
                 ->update(['status'=>1,'inspection_group_id'=>0]);
         }
-
         if($res){
 
             return ['status'=>1,'message'=>'撤销成功'];
@@ -478,7 +565,20 @@ class InspectionController extends Controller
      *              "Bearer":{}
      *          }
      *   },
-     *   @SWG\Response(response="default", description="操作成功"),
+     *   @SWG\Response(
+     *     response="default",
+     *     description="操作失败",
+     *     @SWG\Schema(
+     *          @SWG\Property(
+     *               property="status",
+     *               type="integer"
+     *          ),
+     *          @SWG\Property(
+     *               property="message",
+     *               type="string"
+     *          )
+     *      )
+     *   ),
      *   @SWG\Parameter(
      *         name="inspection_group_id",
      *         in="formData",
@@ -486,20 +586,15 @@ class InspectionController extends Controller
      *         required=true,
      *         type="integer",
      *    ),
-     *   @SWG\Parameter(
-     *         name="user_id",
-     *         in="formData",
-     *         description="验货人id",
-     *         required=true,
-     *         type="integer",
-     *    ),
-     *   @SWG\Parameter(
-     *         name="probable_inspection_date",
-     *         in="formData",
-     *         description="预计验货日期",
-     *         required=true,
-     *         type="string",
-     *    ),
+     *   @SWG\Parameter(name="user_id", required=true, in="body",type="array",
+     *     @SWG\Schema(
+     *     type="array",
+     *     @SWG\Items(
+     *     required={"user_id"},
+     *     )
+     *     ),
+     *     description="验货人id"
+     *   ),
      *   @SWG\Parameter(
      *         name="early_inspection_date",
      *         in="formData",
@@ -521,9 +616,7 @@ class InspectionController extends Controller
         $inspection_group_id=$request->input('inspection_group_id');
         //$probable_inspection_date=$request->input('probable_inspection_date');
         $early_inspection_date=$request->input('early_inspection_date');
-        $now_time=strtotime(date('Y-m-d',time()));
-
-        if(strtotime($early_inspection_date)<$now_time){
+        if(strtotime($early_inspection_date)<time()){
             return [
                 'status'=>0,
                 'message'=>'验货时间不能早于现在'
@@ -552,10 +645,53 @@ class InspectionController extends Controller
         ];
     }
 
-    //撤销已分配任务
+    //
+    /**
+     * 撤销已分配任务
+     *
+     * @SWG\Get(
+     *   path="/api/v1/inspection/reset_distribute_inspections",
+     *   tags={"撤销已分配任务"},
+     *   summary="撤销已分配任务",
+     *   description="撤销已分配任务。",
+     *   produces={"application/json"},
+     *   security={
+     *          {
+     *              "Bearer":{}
+     *          }
+     *   },
+     *   @SWG\Response(
+     *     response="default",
+     *     description="操作失败",
+     *     @SWG\Schema(
+     *          @SWG\Property(
+     *               property="status",
+     *               type="integer"
+     *          ),
+     *          @SWG\Property(
+     *               property="message",
+     *               type="string"
+     *          )
+     *      )
+     *   ),
+     *   @SWG\Parameter(
+     *         name="inspection_group_id",
+     *         in="query",
+     *         description="验货组id",
+     *         required=true,
+     *         type="integer",
+     *    ),
+     * )
+     */
     public function reset_distribute_inspections(Request $request,InspectionGroup $inspectionGroup,ApplyInspection $applyInspection){
         //
-
+        $inspection_group_id=$request->input('inspection_group_id');
+        $inspectionGroup->where('id',$inspection_group_id)->update(array('user_id'=>'','desc'=>''));
+        $applyInspection->where('inspection_group_id',$inspection_group_id)->update(array('status'=>1,'early_inspection_date'=>''));
+        return [
+            'status'=>1,
+            'message'=>'撤销成功'
+        ];
     }
 
 

@@ -112,24 +112,21 @@ Route::group(['prefix' => 'v1','middleware' => 'auth:api'], function(){
     Route::get('schedule/update_schedule_contracts_all', 'Admin\ScheduleController@update_schedule_contracts_all');//
 
 
-    Route::post('inspection/distribute_inspections', 'Admin\InspectionController@distribute_groups');//分组
+    Route::post('inspection/distribute_groups', 'Admin\InspectionController@distribute_groups');//分组
     Route::get('inspection/inspections_group_list', 'Admin\InspectionController@inspections_group_list');//分组列表
     Route::get('inspection/inspections_group', 'Admin\InspectionController@inspections_group');//分配验货列表
     Route::post('inspection/edit_inspections_group_name', 'Admin\InspectionController@edit_inspections_group_name');//修改组名
     Route::get('inspection/edit_inspections_group', 'Admin\InspectionController@edit_inspections_group');//修改组功能展示界面
     Route::post('inspection/store_inspections_group', 'Admin\InspectionController@store_inspections_group');//修改组数据
-    Route::post('inspection/select_group_user', 'Admin\InspectionController@distribute_inspections');//分配验货
+    Route::post('inspection/distribute_inspections', 'Admin\InspectionController@distribute_inspections');//分配验货
     Route::get('inspection/select_group_useranddate_list', 'Admin\InspectionController@select_group_useranddate_list');//选择组用户和分配时间列表
     Route::get('inspection/select_distributed_list', 'Admin\InspectionController@select_distributed_list');//已经分配验货数据
     Route::get('inspection/reset_apply_inspection', 'Admin\InspectionController@reset_apply_inspection');//撤销申请验货
     Route::get('inspection/reset_inspection_group', 'Admin\InspectionController@reset_inspection_group');//撤销组
-
+    Route::get('inspection/reset_distribute_inspections', 'Admin\InspectionController@reset_distribute_inspections');//撤销已分配验货
 
 
     Route::get('inspection/sendemail', 'Admin\InspectionController@sendemail');
-
-
-
 
 
 
@@ -139,8 +136,6 @@ Route::group(['prefix' => 'v1','middleware' => 'auth:api'], function(){
     //swagger
 
 
-    //inspection/distribute_inspections->distribute_groups
-    //inspection/select_group_user->distribute_inspections
 
 
 });

@@ -18,7 +18,7 @@ class InspectionService
     }
 
     //获得各组以及其包含的数据
-    public function inspection_groups_list()
+    public function inspection_groups_list($where=array())
     {
 //        return $data=$this->inspection_group->whereHas('apply_inspections',function ($query){
 //            $query->where('status', 1)->where('is_reset',0);
@@ -41,15 +41,39 @@ class InspectionService
 //
 //        return $data;
 
-        $inspection_group_datas=$this->inspection_group->whereHas('apply_inspections',function ($query){
-               $query->where('status', 1)->where('is_reset',0);
-         })->get();
-        $params=array('status'=>1);
-        foreach ($inspection_group_datas as $item) {
+        if(!isset($where['status'])){
+            $status=1;
+        }else{
+            $status=$where['status'];
+        }
 
+        $inspection_group_datas=$this->inspection_group->whereHas('apply_inspections',function ($query) use($status){
+            $query->where('status', $status)->where('is_reset',0);
+        });
+        if(isset($where['order_by'])&&in_array($where['order_by'],array('asc','desc'))){
+            $order_by=$where['order_by'];
+            $inspection_group_datas=$inspection_group_datas->orderBy(DB::raw("name+0"),$order_by)->get();
+        }else{
+            $inspection_group_datas=$inspection_group_datas->get();
+        }
+
+
+        $params=array('status'=>$status);
+        foreach ($inspection_group_datas as $item) {
             if($item['id']){
                 $params['inspection_group_id']=$item['id'];
             }
+
+             if(isset($item->user_id)&&$item->user_id){
+                 $user_id=$item->user_id;
+                 $user_id=unserialize($user_id);
+                 $res=User::whereIn('id',$user_id)->select('name')->get();
+                 $item->user=$res;
+             }
+
+
+
+
             $scheduleService=new ScheduleService($this->request,$this->response);
             $apply_inspections=$scheduleService->apply_list_by_address($params);
             $item['apply_inspections']=$apply_inspections['data'];
