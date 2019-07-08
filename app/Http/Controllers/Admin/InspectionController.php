@@ -632,6 +632,14 @@ class InspectionController extends Controller
 
         foreach ($early_inspection_date as $i) {
 
+            if(!isset($i['date'])){
+                return [
+                    'status'=>0,
+                    'message'=>'请选择验货时间'
+                ];
+            }
+
+
             if(strtotime($i['date'])<time()){
                 return [
                     'status'=>0,
@@ -656,7 +664,7 @@ class InspectionController extends Controller
                 ->where('status',1)
                 ->where('is_reset',0)
                 ->where(function ($query){
-                    $query->where('early_inspection_date','0000-00-00 00:00:00')->orWhere('early_inspection_date','');
+                    $query->where('early_inspection_date','0000-00-00 00:00:00')->orWhereNull('early_inspection_date');
                 })
                 ->where('contract_id',$contract_id)->update(array('status'=>2,'early_inspection_date'=>$i['date']));
 
