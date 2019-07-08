@@ -61,7 +61,8 @@ class ContractService
                             'create_user' => isset($data->CreateUser) ? $data->CreateUser : '',
                             'status_code' => $data->StatusCode,
                             'status_name' => $data->StatusName,
-                            'user_list' => $data->UserList
+                            'user_list' => $data->UserList,
+                            'factory_simple_address'=>$data->ProviceName.$data->CityName
 
                         ];
                         $Contract = Contract::where('contract_no', $contract_no)->first();

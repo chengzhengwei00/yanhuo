@@ -23,8 +23,7 @@ Route::group(['prefix' => 'v1'], function(){
     Route::get('contracts/update-contracts-status', 'Admin\ContractController@geUpdateContractStatus');//获取验货标准接口
     Route::get('contract/get_manage_list', 'Admin\ContractController@get_manage_list');
 
-
-
+    Route::get('inspection/order_address', 'Admin\InspectionController@order_address');
 
 });
 
@@ -124,6 +123,7 @@ Route::group(['prefix' => 'v1','middleware' => 'auth:api'], function(){
     Route::get('inspection/reset_apply_inspection', 'Admin\InspectionController@reset_apply_inspection');//撤销申请验货
     Route::get('inspection/reset_inspection_group', 'Admin\InspectionController@reset_inspection_group');//撤销组
     Route::get('inspection/reset_distribute_inspections', 'Admin\InspectionController@reset_distribute_inspections');//撤销已分配验货
+
 
 
     Route::get('inspection/sendemail', 'Admin\InspectionController@sendemail');

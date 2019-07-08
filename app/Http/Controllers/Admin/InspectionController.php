@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\ApplyInspectionRequest;
 use App\Http\Model\ContractInspectionGroup;
 use Illuminate\Http\Response;
+use App\Http\Model\Contract;
 
 
 class InspectionController extends Controller
@@ -196,7 +197,7 @@ class InspectionController extends Controller
      * 提交分组数据
      *
      * @SWG\Post(
-     *   path="/api/v1/inspection/distribute_inspections",
+     *   path="/api/v1/inspection/distribute_groups",
      *   tags={"分组"},
      *   summary="分组",
      *   description="分组。",
@@ -257,8 +258,13 @@ class InspectionController extends Controller
             $params['inspection_group_id']=$inspection_group_id;
 
 
-            $applyInspection->where('id',$contentValue)->update($params);
-
+            $res=$applyInspection->where('id',$contentValue)->where('status',1)->where('is_reset',0)->where('inspection_group_id',0)->update($params);
+            if(!$res){
+                return [
+                    'status'=>0,
+                    'message'=>'分组失败'
+                ];
+            }
         }
 
         return [
@@ -555,7 +561,7 @@ class InspectionController extends Controller
      * 分配验货
      *
      * @SWG\Post(
-     *   path="/api/v1/inspection/select_group_user",
+     *   path="/api/v1/inspection/distribute_inspections",
      *   tags={"分配验货"},
      *   summary="分配验货",
      *   description="分配验货。",
@@ -595,13 +601,15 @@ class InspectionController extends Controller
      *     ),
      *     description="验货人id"
      *   ),
-     *   @SWG\Parameter(
-     *         name="early_inspection_date",
-     *         in="formData",
-     *         description="最早验货日期",
-     *         required=true,
-     *         type="string",
-     *    ),
+     *   @SWG\Parameter(name="early_inspection_date", required=true, in="body",type="array",
+     *     @SWG\Schema(
+     *     type="array",
+     *     @SWG\Items(
+     *     required={"early_inspection_date"},
+     *     )
+     *     ),
+     *     description="最早验货日期"
+     *   ),
      *   @SWG\Parameter(
      *         name="desc",
      *         in="formData",
@@ -611,34 +619,54 @@ class InspectionController extends Controller
      * )
      */
     public function distribute_inspections(Request $request,InspectionGroup $inspectionGroup,ApplyInspection $applyInspection){
-        $contract_id=$request->input('contract_id');
         $user_id=$request->input('user_id');
         $inspection_group_id=$request->input('inspection_group_id');
-        //$probable_inspection_date=$request->input('probable_inspection_date');
         $early_inspection_date=$request->input('early_inspection_date');
-        if(strtotime($early_inspection_date)<time()){
+
+        if(!$early_inspection_date||!is_array($early_inspection_date)){
             return [
                 'status'=>0,
-                'message'=>'验货时间不能早于现在'
+                'message'=>'验货时间不能为空'
             ];
         }
 
+        foreach ($early_inspection_date as $i) {
+
+            if(strtotime($i['date'])<time()){
+                return [
+                    'status'=>0,
+                    'message'=>'验货时间不能早于现在'
+                ];
+            }
+            $contract_id=$i['contract_id'];
+
+            $id=$applyInspection->where('contract_id',$contract_id)->first();
+            if(!$id){
+                return [
+                    'status'=>0,
+                    'message'=>'数据不存在'
+                ];
+            }
+
+
+
+
+            $applyInspection
+                ->where('inspection_group_id',$inspection_group_id)
+                ->where('status',1)
+                ->where('is_reset',0)
+                ->where(function ($query){
+                    $query->where('early_inspection_date','0000-00-00 00:00:00')->orWhere('early_inspection_date','');
+                })
+                ->where('contract_id',$contract_id)->update(array('status'=>2,'early_inspection_date'=>$i['date']));
+
+
+        }
         $desc=$request->input('desc');
-        $id=$applyInspection->where('contract_id',$contract_id)->first();
-        if(!$id){
-            return [
-                'status'=>0,
-                'message'=>'数据不存在'
-            ];
-        }
-
         if(!is_array($user_id)){
             $user_id=(array)$user_id;
         }
-
         $inspectionGroup->where('id',$inspection_group_id)->update(array('user_id'=>serialize($user_id),'desc'=>$desc));
-
-        $applyInspection->where('inspection_group_id',$inspection_group_id)->where('contract_id',$contract_id)->update(array('status'=>2,'early_inspection_date'=>$early_inspection_date));
         return [
             'status'=>1,
             'message'=>'选择成功'
@@ -687,11 +715,21 @@ class InspectionController extends Controller
         //
         $inspection_group_id=$request->input('inspection_group_id');
         $inspectionGroup->where('id',$inspection_group_id)->update(array('user_id'=>'','desc'=>''));
-        $applyInspection->where('inspection_group_id',$inspection_group_id)->update(array('status'=>1,'early_inspection_date'=>''));
+        $applyInspection->where('inspection_group_id',$inspection_group_id)->where('is_reset',0)->where('status',2)->update(array('status'=>1,'early_inspection_date'=>''));
         return [
             'status'=>1,
             'message'=>'撤销成功'
         ];
+    }
+
+
+    public function order_address(){
+        $res=Contract::select('json_data','id')->get();
+        foreach ($res as $i) {
+            $data=json_decode($i['json_data'],true);
+            $s=$data['ProviceName'].$data['CityName'];
+            Contract::where('id',$i['id'])->update(['factory_simple_address'=>$s]);
+        }
     }
 
 

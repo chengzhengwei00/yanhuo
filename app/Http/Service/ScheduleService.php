@@ -1038,7 +1038,7 @@ class ScheduleService
         }
 
         if(isset($order_by)){
-            $apply=$apply->orderBy(DB::raw("convert(manufacturer using gbk)"),$order_by)
+            $apply=$apply->orderBy(DB::raw("convert(manufacturer_address using gbk)"),$order_by)
                 ->paginate(20);
         }else{
             $apply=$apply->orderBy('apply_inspections.id','desc')

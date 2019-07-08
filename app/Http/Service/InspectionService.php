@@ -7,6 +7,7 @@ use App\Http\Model\ApplyInspection;
 use App\Http\Model\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class InspectionService
 {
@@ -52,7 +53,7 @@ class InspectionService
         });
         if(isset($where['order_by'])&&in_array($where['order_by'],array('asc','desc'))){
             $order_by=$where['order_by'];
-            $inspection_group_datas=$inspection_group_datas->orderBy(DB::raw("name+0"),$order_by)->get();
+            $inspection_group_datas=$inspection_group_datas->orderBy(DB::raw("convert(name using gbk)"),$order_by)->get();
         }else{
             $inspection_group_datas=$inspection_group_datas->get();
         }
@@ -68,7 +69,10 @@ class InspectionService
                  $user_id=$item->user_id;
                  $user_id=unserialize($user_id);
                  $res=User::whereIn('id',$user_id)->select('name')->get();
-                 $item->user=$res;
+                 foreach ($res as $ir) {
+                     $user_arr[]=$ir['name'];
+                 }
+                 $item->user=$user_arr;
              }
 
 
@@ -91,11 +95,11 @@ class InspectionService
 
     //获得已经分配验货的数据
     public function select_distributed_list(){
-        $data=$this->apply_inspection->where('is_reset',0)->where('status',2)->has('inspection_group')->with(['inspection_group'=>function($query){
-            $query->with(['user'=>function($query){
-                $query->select('id','name');
-            }]);
-        }])->orderBy('id','desc')->get();
+//        $data=$this->apply_inspection->where('is_reset',0)->where('status',2)->has('inspection_group')->with(['inspection_group'=>function($query){
+//            $query->with(['user'=>function($query){
+//                $query->select('id','name');
+//            }]);
+//        }])->orderBy('id','desc')->get();
          //return $data;
 
 

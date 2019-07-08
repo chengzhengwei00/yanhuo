@@ -12,6 +12,7 @@
         "laravel/passport": "~4.0",
         "laravel/tinker": "~1.0",
         "paragonie/random_compat": "2.*",
+        "rap2hpoutre/laravel-log-viewer": "^1.2",
         "zircote/swagger-php": "2.*"
     },
     "require-dev": {
