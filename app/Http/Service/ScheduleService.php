@@ -1026,19 +1026,19 @@ class ScheduleService
         if(isset($params['where'])&&is_array($params['where'])){
             $where=$params['where'];
             $apply=$apply->where($where)
-                ->select('users.name as apply_name','apply_inspections.*','contracts.manufacturer as factory_name','contracts.manufacturer_address as factory_address','contracts.contract_no','contracts.create_user as buyer_user');
+                ->select('users.name as apply_name','apply_inspections.*','contracts.manufacturer as factory_name','contracts.manufacturer_address as factory_address','contracts.contract_no','contracts.create_user as buyer_user','contracts.factory_simple_address');
 
 
 
         }else{
 
             $apply=$apply
-                ->select('users.name as apply_name','apply_inspections.*','contracts.manufacturer as factory_name','contracts.manufacturer_address as factory_address','contracts.contract_no','contracts.create_user as buyer_user');
+                ->select('users.name as apply_name','apply_inspections.*','contracts.manufacturer as factory_name','contracts.manufacturer_address as factory_address','contracts.contract_no','contracts.create_user as buyer_user','contracts.factory_simple_address');
 
         }
 
         if(isset($order_by)){
-            $apply=$apply->orderBy(DB::raw("convert(manufacturer_address using gbk)"),$order_by)
+            $apply=$apply->orderBy(DB::raw("convert(factory_simple_address using gbk)"),$order_by)
                 ->paginate(20);
         }else{
             $apply=$apply->orderBy('apply_inspections.id','desc')
