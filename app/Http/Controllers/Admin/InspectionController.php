@@ -15,6 +15,8 @@ use App\Http\Requests\ApplyInspectionRequest;
 use App\Http\Model\ContractInspectionGroup;
 use Illuminate\Http\Response;
 use App\Http\Model\Contract;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 
 class InspectionController extends Controller
@@ -240,37 +242,68 @@ class InspectionController extends Controller
      * )
      */
     public function distribute_groups(ApplyInspectionRequest $request, InspectionGroup $inspectionGroup,ApplyInspection $applyInspection){
+
+
+
         $contents=$request->input('contents');
         $inspection_group_name=$request->input('inspection_group_name');
-        $res=$inspectionGroup->create(['name'=>$inspection_group_name]);
-        if(!$res){
-            return [
-                'status'=>0,
-                'message'=>'组名保存失败'
-            ];
-        }
-        $inspection_group_id=$res->id;
 
-        foreach ($contents as $k => $contentValue) {
-            $params=array();
+        DB::beginTransaction();
 
+        try{
+            $res=$inspectionGroup->create(['name'=>$inspection_group_name]);
 
-            $params['inspection_group_id']=$inspection_group_id;
-
-
-            $res=$applyInspection->where('id',$contentValue)->where('status',1)->where('is_reset',0)->where('inspection_group_id',0)->update($params);
             if(!$res){
                 return [
                     'status'=>0,
-                    'message'=>'分组失败'
+                    'message'=>'组名保存失败'
                 ];
             }
+
+
+            $inspection_group_id=$res->id;
+
+            foreach ($contents as $k => $contentValue) {
+                $params=array();
+
+
+                $params['inspection_group_id']=$inspection_group_id;
+
+
+                $res=$applyInspection->where('id',$contentValue)->where('status',1)->where('is_reset',0)->where('inspection_group_id',0)->update($params);
+                if(!$res){
+                    DB::rollBack();
+
+                    return [
+                        'status'=>0,
+                        'message'=>'分组失败'
+                    ];
+                }
+            }
+
+            DB::commit();
+
+            return [
+                'status'=>1,
+                'message'=>'分组成功'
+            ];
+
+        }catch (Exception $exception){
+            DB::rollBack();
+            return [
+                'status'=>0,
+                'message'=>'分组失败'
+            ];
         }
 
-        return [
-            'status'=>1,
-            'message'=>'分组成功'
-        ];
+
+
+
+
+
+
+
+
 
 
     }
@@ -432,7 +465,6 @@ class InspectionController extends Controller
         $order_by=$request->input('order_by');
         $where['order_by']=$order_by;
         return $inspectionService->inspection_groups_list($where);
-        //return $inspectionService->select_distributed_list();
     }
 
 
@@ -476,16 +508,22 @@ class InspectionController extends Controller
      */
     public function reset_apply_inspection(Request $request,Response $response,ApplyInspection $applyInspection){
 
-
         $id=$request->input('id');
-        $apply_inspection_data=$applyInspection->where('id',$id)->whereIn('status',array(0,1,2))->where('is_reset',0)->update(array('is_reset'=>1));
-        if($apply_inspection_data){
-            return ['status'=>1,'message'=>'撤销成功'];
-        }
-        if(!$apply_inspection_data){
-            return ['status'=>0,'message'=>'撤销失败'];
+        try{
+            $apply_inspection_data=$applyInspection->where('id',$id)->whereIn('status',array(0,1,2))->where('is_reset',0)->update(array('is_reset'=>1));
+            if($apply_inspection_data){
+                return ['status'=>1,'message'=>'撤销成功'];
+            }
+            if(!$apply_inspection_data){
+                return ['status'=>0,'message'=>'撤销失败'];
 
+            }
+
+        }catch (Exception $exception){
+            return ['status'=>0,'message'=>'撤销失败'];
         }
+
+
 
     }
 
@@ -534,25 +572,63 @@ class InspectionController extends Controller
      */
     public function reset_inspection_group(Request $request,ApplyInspection $applyInspection){
         //获得组id
+//        $inspection_group_id=$request->input('inspection_group_id');
+//        $contract_id=$request->input('contract_id');
+//
+//        if($inspection_group_id){
+//            $res=$applyInspection->where('inspection_group_id',$inspection_group_id)
+//                ->update(['status'=>1,'inspection_group_id'=>0]);
+//
+//
+//            if($res){
+//                InspectionGroup::where('id',$inspection_group_id)->delete();
+//                return ['status'=>1,'message'=>'撤销成功'];
+//            }else{
+//                return ['status'=>0,'message'=>'撤销失败'];
+//            }
+//        }
+//
+//        if($contract_id){
+//            $res=$applyInspection->where('contract_id',$contract_id)
+//                ->update(['status'=>1,'inspection_group_id'=>0]);
+//
+//            if($res){
+//
+//                return ['status'=>1,'message'=>'撤销成功'];
+//            }else{
+//                return ['status'=>0,'message'=>'撤销失败'];
+//            }
+//        }
+
+
         $inspection_group_id=$request->input('inspection_group_id');
         $contract_id=$request->input('contract_id');
 
         if($inspection_group_id){
             $res=$applyInspection->where('inspection_group_id',$inspection_group_id)
                 ->update(['status'=>1,'inspection_group_id'=>0]);
-            InspectionGroup::where('id',$inspection_group_id)->delete();
+
+
+            if($res){
+                InspectionGroup::where('id',$inspection_group_id)->delete();
+                return ['status'=>1,'message'=>'撤销成功'];
+            }else{
+                return ['status'=>0,'message'=>'撤销失败'];
+            }
         }
 
         if($contract_id){
             $res=$applyInspection->where('contract_id',$contract_id)
                 ->update(['status'=>1,'inspection_group_id'=>0]);
-        }
-        if($res){
 
-            return ['status'=>1,'message'=>'撤销成功'];
-        }else{
-            return ['status'=>0,'message'=>'撤销失败'];
+            if($res){
+
+                return ['status'=>1,'message'=>'撤销成功'];
+            }else{
+                return ['status'=>0,'message'=>'撤销失败'];
+            }
         }
+
     }
 
 
@@ -640,7 +716,7 @@ class InspectionController extends Controller
             }
 
 
-            if(strtotime($i['date'])<time()){
+            if(strtotime($i['date'])<strtotime(date('Y-m-d',time()))){
                 return [
                     'status'=>0,
                     'message'=>'验货时间不能早于现在'
@@ -648,18 +724,9 @@ class InspectionController extends Controller
             }
             $contract_id=$i['contract_id'];
 
-            $id=$applyInspection->where('contract_id',$contract_id)->first();
-            if(!$id){
-                return [
-                    'status'=>0,
-                    'message'=>'数据不存在'
-                ];
-            }
 
 
-
-
-            $applyInspection
+            $res=$applyInspection
                 ->where('inspection_group_id',$inspection_group_id)
                 ->where('status',1)
                 ->where('is_reset',0)
@@ -668,17 +735,30 @@ class InspectionController extends Controller
                 })
                 ->where('contract_id',$contract_id)->update(array('status'=>2,'early_inspection_date'=>$i['date']));
 
+            if(!$res){
+                return [
+                    'status'=>0,
+                    'message'=>'分配失败'
+                ];
+            }
 
         }
         $desc=$request->input('desc');
-        if(!is_array($user_id)){
-            $user_id=(array)$user_id;
+        if($user_id){
+            $res=$inspectionGroup->where('id',$inspection_group_id)->update(array('user_id'=>serialize($user_id),'desc'=>$desc));
         }
-        $inspectionGroup->where('id',$inspection_group_id)->update(array('user_id'=>serialize($user_id),'desc'=>$desc));
-        return [
-            'status'=>1,
-            'message'=>'选择成功'
-        ];
+
+        if($res){
+            return [
+                'status'=>1,
+                'message'=>'分配成功'
+            ];
+        }else{
+            return [
+                'status'=>0,
+                'message'=>'分配失败'
+            ];
+        }
     }
 
     //
@@ -722,23 +802,24 @@ class InspectionController extends Controller
     public function reset_distribute_inspections(Request $request,InspectionGroup $inspectionGroup,ApplyInspection $applyInspection){
         //
         $inspection_group_id=$request->input('inspection_group_id');
-        $inspectionGroup->where('id',$inspection_group_id)->update(array('user_id'=>'','desc'=>''));
-        $applyInspection->where('inspection_group_id',$inspection_group_id)->where('is_reset',0)->where('status',2)->update(array('status'=>1,'early_inspection_date'=>''));
-        return [
-            'status'=>1,
-            'message'=>'撤销成功'
-        ];
-    }
+        $res1=$inspectionGroup->where('id',$inspection_group_id)->update(array('user_id'=>'','desc'=>''));
+        $res2=$applyInspection->where('inspection_group_id',$inspection_group_id)->where('is_reset',0)->where('status',2)->update(array('status'=>1,'early_inspection_date'=>''));
 
-
-    public function order_address(){
-        $res=Contract::select('json_data','id')->get();
-        foreach ($res as $i) {
-            $data=json_decode($i['json_data'],true);
-            $s=$data['ProviceName'].$data['CityName'];
-            Contract::where('id',$i['id'])->update(['factory_simple_address'=>$s]);
+        if($res1&&$res2){
+            return [
+                'status'=>1,
+                'message'=>'撤销成功'
+            ];
+        }else{
+            return [
+                'status'=>0,
+                'message'=>'撤销失败'
+            ];
         }
+
     }
+
+
 
 
 

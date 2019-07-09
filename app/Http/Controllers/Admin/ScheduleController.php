@@ -160,7 +160,7 @@ class ScheduleController extends Controller
 
 
     /**
-     * 申请验货列表
+     * 申请列表
      *
      * @SWG\Get(
      *   path="/api/v1/schedule/apply-inspection-list",
@@ -178,24 +178,26 @@ class ScheduleController extends Controller
      */
     public function getApplyInspectionList(Request $request)
     {
-//        $where[]=array('apply_inspections.inspection_group_id','=',0);
-//
-//        $params['status']=0;
-//        $params['where']=$where;
+
+        $status=$request->input('status');
+        $status_arr=array(0,1,2);
+        if(strlen($status)>0&&in_array($status,$status_arr)){
+            $params['status']=$status;
+        }else{
+            $params['status']=array(0,1,2);
+        }
 
 
 
-
-
-
-        $params['status']=array(0,1,2);
         $order_by=$request->input('order_by');
         if(isset($order_by)){
             $params['order_by']=$order_by;
         }
-        return $this->scheduleService->apply_list_by_address($params);
 
-        //return $this->scheduleService->apply_inspection_list();
+        $this->scheduleService->inspection_status;
+
+
+        return $this->scheduleService->apply_list_by_address($params);
     }
     //
     /**

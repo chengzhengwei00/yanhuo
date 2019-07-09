@@ -911,13 +911,29 @@ class ScheduleService
         $file_service=new FileService($this->request);
         $replace_content_photo=[];
 
+        $inspection_date=strtotime($inspection_date);
+        if($inspection_date<strtotime(date('Y-m-d',time()))){
+            return [
+                'status'=>0,
+                'message'=>'验货时间不能早于现在'
+            ];
+        }
+
+
 
         $data = [
             'contract_id' => $contract_id,
             'sku_num' => json_encode($replace_content_photo),
-            'inspection_date'=>date('Y-m-d H:i:s',strtotime($inspection_date)),
+            'inspection_date'=>date('Y-m-d H:i:s',$inspection_date),
             'apply_user' => Auth::id()
         ];
+
+
+
+
+
+
+
         try {
             $count=ApplyInspection::where('contract_id',$contract_id)->where('is_reset',0)->where(function($query){
 

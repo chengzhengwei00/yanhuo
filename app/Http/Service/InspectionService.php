@@ -64,10 +64,11 @@ class InspectionService
             if($item['id']){
                 $params['inspection_group_id']=$item['id'];
             }
-
+            $user_arr=array();
              if(isset($item->user_id)&&$item->user_id){
                  $user_id=$item->user_id;
                  $user_id=unserialize($user_id);
+                 $item->user_id=$user_id;
                  $res=User::whereIn('id',$user_id)->select('name')->get();
                  foreach ($res as $ir) {
                      $user_arr[]=$ir['name'];
@@ -93,31 +94,7 @@ class InspectionService
         return $apply=ApplyInspection::with('contract_inspection_groups')->where('is_reset',0)->where('status',1)->paginate(100);
     }
 
-    //获得已经分配验货的数据
-    public function select_distributed_list(){
-//        $data=$this->apply_inspection->where('is_reset',0)->where('status',2)->has('inspection_group')->with(['inspection_group'=>function($query){
-//            $query->with(['user'=>function($query){
-//                $query->select('id','name');
-//            }]);
-//        }])->orderBy('id','desc')->get();
-         //return $data;
 
-
-        $data=$this->apply_inspection->where('is_reset',0)->where('status',2)->has('inspection_group')->with('inspection_group')->orderBy('id','desc')->get();
-        //return $data;
-        if(count($data)){
-
-            foreach ($data as &$item) {
-               $user_id=$item->inspection_group->user_id;
-                $user_id=unserialize($user_id);
-                $res=User::whereIn('id',$user_id)->select('name')->get();
-                $item->inspection_group->user=$res;
-            }
-            $scheduleService=new ScheduleService($this->request,$this->response);
-            $data=$scheduleService->deal_apply_list($data);
-        }
-        return $data;
-    }
 
 
 

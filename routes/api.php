@@ -23,11 +23,12 @@ Route::group(['prefix' => 'v1'], function(){
     Route::get('contracts/update-contracts-status', 'Admin\ContractController@geUpdateContractStatus');//获取验货标准接口
     Route::get('contract/get_manage_list', 'Admin\ContractController@get_manage_list');
 
-    Route::get('inspection/order_address', 'Admin\InspectionController@order_address');
+    Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
 
 });
 
 Route::group(['prefix' => 'v1','middleware' => 'auth:api'], function(){
+
     //用户类
     Route::get('logout', 'Auth\LoginController@logout')->name('auth.login.logout');//注销
     Route::post('reset', 'Admin\UserController@reset')->name('admin.user.reset');//重置密码
@@ -114,9 +115,6 @@ Route::group(['prefix' => 'v1','middleware' => 'auth:api'], function(){
     Route::post('inspection/distribute_groups', 'Admin\InspectionController@distribute_groups');//分组
     Route::get('inspection/inspections_group_list', 'Admin\InspectionController@inspections_group_list');//分组列表
     Route::get('inspection/inspections_group', 'Admin\InspectionController@inspections_group');//分配验货列表
-    Route::post('inspection/edit_inspections_group_name', 'Admin\InspectionController@edit_inspections_group_name');//修改组名
-    Route::get('inspection/edit_inspections_group', 'Admin\InspectionController@edit_inspections_group');//修改组功能展示界面
-    Route::post('inspection/store_inspections_group', 'Admin\InspectionController@store_inspections_group');//修改组数据
     Route::post('inspection/distribute_inspections', 'Admin\InspectionController@distribute_inspections');//分配验货
     Route::get('inspection/select_group_useranddate_list', 'Admin\InspectionController@select_group_useranddate_list');//选择组用户和分配时间列表
     Route::get('inspection/select_distributed_list', 'Admin\InspectionController@select_distributed_list');//已经分配验货数据
