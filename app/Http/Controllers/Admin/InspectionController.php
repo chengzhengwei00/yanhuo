@@ -17,179 +17,11 @@ use Illuminate\Http\Response;
 use App\Http\Model\Contract;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\EditInspectionGroupRequest;
 
 
 class InspectionController extends Controller
 {
-
-    //
-    /**
-     * 修改组名
-     *
-     * @SWG\Post(
-     *   path="/api/v1/inspection/edit_inspections_group_name",
-     *   tags={"修改组名"},
-     *   summary="修改组名",
-     *   description="修改组名。",
-     *   produces={"application/json"},
-     *   security={
-     *          {
-     *              "Bearer":{}
-     *          }
-     *   },
-     *   @SWG\Response(response="default", description="操作成功"),
-     *   @SWG\Parameter(
-     *         name="inspection_group_id",
-     *         in="formData",
-     *         description="验货组id",
-     *         required=true,
-     *         type="integer",
-     *    ),
-     *   @SWG\Parameter(
-     *         name="inspection_group_name",
-     *         in="formData",
-     *         description="验货组名称",
-     *         required=true,
-     *         type="string",
-     *    ),
-     * )
-     */
-//    public function edit_inspections_group_name(InspectionGroupRequest $request,InspectionGroup $inspectionGroup){
-//
-//        $id=$request->input('inspection_group_id');
-//        $name=$request->input('inspection_group_name');
-//        $res=$inspectionGroup->where('id',$id)->first();
-//        if(!$res){
-//            return [
-//                'status'=>1,
-//                'message'=>'数据不存在'
-//            ];
-//        }
-//        $inspectionGroup->where('id',$id)->update(['name'=>$name]);
-//
-//        return [
-//            'status'=>1,
-//            'message'=>'修改成功'
-//        ];
-//
-//    }
-
-    //
-    /**
-     * 修改验货组数据
-     *
-     * @SWG\Post(
-     *   path="/api/v1/inspection/store_inspections_group",
-     *   tags={"修改验货组数据"},
-     *   summary="修改验货组数据",
-     *   description="修改验货组数据。",
-     *   produces={"application/json"},
-     *   security={
-     *          {
-     *              "Bearer":{}
-     *          }
-     *   },
-     *   @SWG\Response(response="default", description="操作成功"),
-     *   @SWG\Parameter(
-     *         name="inspection_group_id",
-     *         in="formData",
-     *         description="验货组id",
-     *         required=true,
-     *         type="integer",
-     *    ),
-     *   @SWG\Parameter(name="contract_ids", required=true, in="body",type="array",
-     *     @SWG\Schema(
-     *     type="array",
-     *     @SWG\Items(
-     *     required={"contract_ids"},
-     *     )
-     *     ),
-     *     description="合同id"
-     *   ),
-     * )
-     */
-
-//    public function store_inspections_group(Request $request,ApplyInspection $applyInspection){
-//        $inspection_group_id=$request->input('inspection_group_id');
-//        $contract_ids=$request->input('contract_ids');
-//
-//        if(!$inspection_group_id||!$contract_ids||!is_array($contract_ids)){
-//            return [
-//                'status'=>0,
-//                'message'=>'参数错误'
-//            ];
-//        }
-//
-//        //获得该组下面所有合同id
-//        $idsRes=$applyInspection->where('inspection_group_id',$inspection_group_id)->select('contract_id')->paginate(100);
-//
-//        $ids=array();
-//        foreach ($idsRes as $id) {
-//            $ids[]=$id['contract_id'];
-//        }
-//        $del_arr=array_diff($ids,$contract_ids);
-//        $add_arr=array_diff($contract_ids,$ids);
-//        $applyInspection->whereIn('contract_id',$del_arr)->where('inspection_group_id',$inspection_group_id)->update(['inspection_group_id'=>0]);
-//        $applyInspection->whereIn('contract_id',$add_arr)->where('inspection_group_id',0)->update(['inspection_group_id'=>$inspection_group_id]);
-//
-//        return [
-//            'status'=>1,
-//            'message'=>'修改成功'
-//        ];
-//    }
-
-
-
-    //
-    /**
-     * 修改组功能展示界面
-     *
-     * @SWG\Get(
-     *   path="/api/v1/inspection/edit_inspections_group",
-     *   tags={"修改组功能展示界面"},
-     *   summary="修改组功能展示界面",
-     *   description="修改组功能展示界面。",
-     *   produces={"application/json"},
-     *   security={
-     *          {
-     *              "Bearer":{}
-     *          }
-     *   },
-     *   @SWG\Response(response="default", description="操作成功"),
-     *   @SWG\Parameter(
-     *         name="inspection_group_id",
-     *         in="query",
-     *         description="验货组id",
-     *         required=true,
-     *         type="integer",
-     *    )
-     * )
-     */
-//    public function edit_inspections_group(Request $request,Response $response,InspectionGroup $inspectionGroup){
-//        $inspection_group_id=$request->input('inspection_group_id');
-//
-//        $scheduleService=new ScheduleService($request,$response);
-//        $scheduleService->status=1;
-//        $where[]=array('inspection_group_id','=',0);
-//
-//
-//        $whereParam=function ($query) use($where,$inspection_group_id){
-//            $query->where($where)
-//                ->orWhere('inspection_group_id',$inspection_group_id);
-//        };
-//
-//        $inspections_group_list=$scheduleService->apply_list($whereParam);
-//
-//
-//
-//        //获得组名
-//        $inspection_group_name=$inspectionGroup->where('id',$inspection_group_id)->value('name');
-//        $res['data']['group_data']=$inspections_group_list['data'];
-//        $res['data']['inspection_group_name']=$inspection_group_name;
-//        $res['data']['inspection_group_id']=$inspection_group_id;
-//        return $res;
-//    }
-
 
 
 
@@ -200,15 +32,49 @@ class InspectionController extends Controller
      *
      * @SWG\Post(
      *   path="/api/v1/inspection/distribute_groups",
-     *   tags={"分组"},
-     *   summary="分组",
-     *   description="分组。",
+     *   tags={"验货分组"},
+     *   summary="验货分组",
+     *   description="验货分组。",
      *   produces={"application/json"},
      *   security={
      *          {
      *              "Bearer":{}
      *          }
      *   },
+     *   @SWG\Parameter(name="contents", required=true, in="body",
+     *     @SWG\Schema(
+     *        type="string",
+     *         @SWG\Property(
+     *            property="firstName",
+     *            type="string"
+     *          ),
+     *         @SWG\Property(
+     *            property="lastName",
+     *            type="string"
+     *          ),
+     *         @SWG\Property(
+     *            property="sss",
+     *            type="array",
+         *        @SWG\Items(
+         *           required={"lastName"},
+         *         @SWG\Property(
+         *            property="firstName",
+         *            type="string"
+         *          ),
+         *         @SWG\Property(
+         *            property="lastName",
+         *            type="string"
+         *          ),
+         *        )
+     *          ),
+
+     *     ),
+     *     description="参数",
+     *     default="{
+                inspection_group_name:哈哈哈哈哈哈,
+                contents:[1,2,3]
+                }"
+     *   ),
      *   @SWG\Response(
      *     response="default",
      *     description="操作失败",
@@ -222,22 +88,6 @@ class InspectionController extends Controller
      *               type="string"
      *          )
      *      )
-     *   ),
-     *   @SWG\Parameter(
-     *         name="inspection_group_name",
-     *         in="formData",
-     *         description="验货组名",
-     *         required=true,
-     *         type="integer",
-     *    ),
-     *   @SWG\Parameter(name="contents", required=true, in="body",type="array",
-     *     @SWG\Schema(
-     *     type="array",
-     *     @SWG\Items(
-     *     required={"contract_ids"},
-     *     )
-     *     ),
-     *     description="合同id"
      *   ),
      * )
      */
@@ -405,12 +255,6 @@ class InspectionController extends Controller
 
 
 
-
-
-
-
-
-
     //
     /**
      * 验货用户列表
@@ -571,34 +415,7 @@ class InspectionController extends Controller
      * )
      */
     public function reset_inspection_group(Request $request,ApplyInspection $applyInspection){
-        //获得组id
-//        $inspection_group_id=$request->input('inspection_group_id');
-//        $contract_id=$request->input('contract_id');
-//
-//        if($inspection_group_id){
-//            $res=$applyInspection->where('inspection_group_id',$inspection_group_id)
-//                ->update(['status'=>1,'inspection_group_id'=>0]);
-//
-//
-//            if($res){
-//                InspectionGroup::where('id',$inspection_group_id)->delete();
-//                return ['status'=>1,'message'=>'撤销成功'];
-//            }else{
-//                return ['status'=>0,'message'=>'撤销失败'];
-//            }
-//        }
-//
-//        if($contract_id){
-//            $res=$applyInspection->where('contract_id',$contract_id)
-//                ->update(['status'=>1,'inspection_group_id'=>0]);
-//
-//            if($res){
-//
-//                return ['status'=>1,'message'=>'撤销成功'];
-//            }else{
-//                return ['status'=>0,'message'=>'撤销失败'];
-//            }
-//        }
+
 
 
         $inspection_group_id=$request->input('inspection_group_id');
@@ -636,6 +453,21 @@ class InspectionController extends Controller
     /**
      * 分配验货
      *
+    /**
+     * @SWG\Definition(
+     *     definition="Person",
+     *     type="array",
+     *     items="sdds,sds,dfsds",
+     *     @SWG\Property(
+     *         property="firstName",
+     *         type="string"
+     *     ),
+     *     @SWG\Property(
+     *         property="lastName",
+     *         type="string"
+     *     ),
+     * )
+     *
      * @SWG\Post(
      *   path="/api/v1/inspection/distribute_inspections",
      *   tags={"分配验货"},
@@ -668,23 +500,25 @@ class InspectionController extends Controller
      *         required=true,
      *         type="integer",
      *    ),
-     *   @SWG\Parameter(name="user_id", required=true, in="body",type="array",
-     *     @SWG\Schema(
-     *     type="array",
-     *     @SWG\Items(
-     *     required={"user_id"},
-     *     )
-     *     ),
-     *     description="验货人id"
+     *   @SWG\Parameter(name="user_idss", required=true, in="formData",type="string",
+     *      @SWG\Schema(ref="#/definitions/Person")
      *   ),
-     *   @SWG\Parameter(name="early_inspection_date", required=true, in="body",type="array",
-     *     @SWG\Schema(
-     *     type="array",
-     *     @SWG\Items(
-     *     required={"early_inspection_date"},
-     *     )
+
+
+     *   @SWG\Parameter(name="user_id", required=true, in="formData",type="array",
+     *      @SWG\items(
+     *         type="string",
+         *     @SWG\Property(
+         *         property="firstName",
+         *         type="string"
+         *     ),
+         *     @SWG\Property(
+         *         property="lastName",
+         *         type="string"
+         *     ),
      *     ),
-     *     description="最早验货日期"
+
+     *     description="验货人id"
      *   ),
      *   @SWG\Parameter(
      *         name="desc",
@@ -696,7 +530,8 @@ class InspectionController extends Controller
      */
     public function distribute_inspections(Request $request,InspectionGroup $inspectionGroup,ApplyInspection $applyInspection){
         $user_id=$request->input('user_id');
-        $inspection_group_id=$request->input('inspection_group_id');
+        return $user_id[0];
+            $inspection_group_id=$request->input('inspection_group_id');
         $early_inspection_date=$request->input('early_inspection_date');
 
         if(!$early_inspection_date||!is_array($early_inspection_date)){
@@ -817,6 +652,69 @@ class InspectionController extends Controller
             ];
         }
 
+    }
+    
+    
+    //
+    /**
+     * 修改验货组名
+     *
+     * @SWG\Post(
+     *   path="/api/v1/inspection/editInspectionGroupName",
+     *   tags={"修改验货组名"},
+     *   summary="修改验货组名",
+     *   description="修改验货组名。",
+     *   produces={"application/json"},
+     *   security={
+     *          {
+     *              "Bearer":{}
+     *          }
+     *   },
+     *   @SWG\Parameter(
+     *         name="inspection_group_id",
+     *         in="query",
+     *         description="验货组id",
+     *         required=true,
+     *         type="integer",
+     *    ),
+     *   @SWG\Parameter(
+     *         name="inspection_group_name",
+     *         in="query",
+     *         description="验货组名",
+     *         required=true,
+     *         type="string",
+     *    ),
+     *   @SWG\Response(
+     *     response="default",
+     *     description="操作失败",
+     *     @SWG\Schema(
+     *          @SWG\Property(
+     *               property="status",
+     *               type="integer"
+     *          ),
+     *          @SWG\Property(
+     *               property="message",
+     *               type="string"
+     *          )
+     *      )
+     *   ),
+     * )
+     */
+    public function editInspectionGroupName(EditInspectionGroupRequest $request,InspectionGroup $inspectionGroup) {
+        $inspection_group_id= $request->input('inspection_group_id');
+        $name= $request->input('inspection_group_name');
+        $res=$inspectionGroup->where('id',$inspection_group_id)->update(array('name'=>$name));
+        if($res){
+            return [
+                'status'=>1,
+                'message'=>'修改组名成功'
+            ];
+        }else{
+            return [
+                'status'=>0,
+                'message'=>'修改组名失败'
+            ];
+        }
     }
 
 
