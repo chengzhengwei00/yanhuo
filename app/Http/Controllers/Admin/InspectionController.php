@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\EditInspectionGroupRequest;
 use App\Http\Requests\UpdateInspectionGroupSortRequest;
+use App\Http\Requests\DistributeInspectionRequest;
 
 
 class InspectionController extends Controller
@@ -556,7 +557,7 @@ class InspectionController extends Controller
      *    ),
      * )
      */
-    public function distribute_inspections(Request $request,InspectionGroup $inspectionGroup,ApplyInspection $applyInspection){
+    public function distribute_inspections(DistributeInspectionRequest $request,InspectionGroup $inspectionGroup,ApplyInspection $applyInspection){
         $user_id=$request->input('user_id');
         $inspection_group_id=$request->input('inspection_group_id');
         $early_inspection_date=$request->input('early_inspection_date');
@@ -567,7 +568,23 @@ class InspectionController extends Controller
                 'message'=>'验货时间不能为空'
             ];
         }
+        $user_id_res=$inspectionGroup->where('id',$inspection_group_id)->select('user_id')->first();
+        if(!$user_id_res){
+            return [
+                'status'=>0,
+                'message'=>'数据不存在'
+            ];
+        }
+        if(isset($user_id_res->user_id)&&!$user_id_res->user_id){
 
+            if(!$user_id||!is_array($user_id)){
+                return [
+                    'status'=>0,
+                    'message'=>'请选择验货人'
+                ];
+            }
+
+        }
         foreach ($early_inspection_date as $i) {
 
             if(!isset($i['date'])){
