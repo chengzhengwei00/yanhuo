@@ -575,9 +575,9 @@ class InspectionController extends Controller
                 'message'=>'数据不存在'
             ];
         }
-        if(isset($user_id_res->user_id)&&!$user_id_res->user_id){
+        if(isset($user_id_res->user_id)||!$user_id_res->user_id){
 
-            if(!$user_id||!is_array($user_id)){
+            if(!$user_id||count($user_id)<1){
                 return [
                     'status'=>0,
                     'message'=>'请选择验货人'
