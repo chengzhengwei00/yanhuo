@@ -122,6 +122,8 @@ Route::group(['prefix' => 'v1','middleware' => 'auth:api'], function(){
     Route::get('inspection/reset_inspection_group', 'Admin\InspectionController@reset_inspection_group');//撤销组
     Route::get('inspection/reset_distribute_inspections', 'Admin\InspectionController@reset_distribute_inspections');//撤销已分配验货
     Route::post('inspection/editInspectionGroupName', 'Admin\InspectionController@editInspectionGroupName');//修改组名
+    Route::post('inspection/update_inspections_group_sort', 'Admin\InspectionController@update_inspections_group_sort');//更新验货列表排序id
+
 
 
     Route::get('inspection/sendemail', 'Admin\InspectionController@sendemail');

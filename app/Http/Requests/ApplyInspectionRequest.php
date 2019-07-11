@@ -27,8 +27,7 @@ class ApplyInspectionRequest extends FormRequest
         return [
             //
             'inspection_group_name'         => 'required',
-            'contents'         => 'required',
-            'contents.*'         => 'required|min:1',
+            'contents'         => 'required|array|min:1'
         ];
     }
 
@@ -36,8 +35,8 @@ class ApplyInspectionRequest extends FormRequest
     {
         return [
             'inspection_group_name.required'     => '分配组名不能为空',
-            'contents.required'     => 'id不能为空',
-            'contents.*.required'     => 'id不能为空',
+            'contents.required'     => '请填写分配验货数据',
+            'contents.array'     => '分配验货格式不对',
         ];
     }
 }

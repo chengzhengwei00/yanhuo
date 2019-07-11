@@ -1031,6 +1031,11 @@ class ScheduleService
         if(isset($params['order_by'])&&in_array($params['order_by'],$order_by_arr)){
             $order_by=$params['order_by'];
         }
+
+
+
+
+
         $apply=DB::table('apply_inspections')
             ->join('contracts','apply_inspections.contract_id','=','contracts.id')
             ->join('users','apply_inspections.apply_user','=','users.id')
@@ -1053,13 +1058,28 @@ class ScheduleService
 
         }
 
+
+
+
         if(isset($order_by)){
             $apply=$apply->orderBy(DB::raw("convert(factory_simple_address using gbk)"),$order_by)
                 ->paginate(20);
         }else{
-            $apply=$apply->orderBy('apply_inspections.id','desc')
-                ->paginate(20);
+
+            if(isset($params['sort_by'])&&$params['sort_by']){
+                $apply=$apply->orderBy('apply_inspections.sort','asc')
+                    ->paginate(20);
+            }else{
+                $apply=$apply->orderBy('apply_inspections.id','asc')
+                    ->paginate(20);
+            }
+
+
         }
+
+
+
+
 
 
         $apply=$this->deal_apply_list_address($apply);

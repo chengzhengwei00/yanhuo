@@ -18,6 +18,7 @@ use App\Http\Model\Contract;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\EditInspectionGroupRequest;
+use App\Http\Requests\UpdateInspectionGroupSortRequest;
 
 
 class InspectionController extends Controller
@@ -56,7 +57,6 @@ class InspectionController extends Controller
      *            property="sss",
      *            type="array",
          *        @SWG\Items(
-         *           required={"lastName"},
          *         @SWG\Property(
          *            property="firstName",
          *            type="string"
@@ -104,6 +104,7 @@ class InspectionController extends Controller
             $res=$inspectionGroup->create(['name'=>$inspection_group_name]);
 
             if(!$res){
+                DB::rollBack();
                 return [
                     'status'=>0,
                     'message'=>'组名保存失败'
@@ -114,13 +115,20 @@ class InspectionController extends Controller
             $inspection_group_id=$res->id;
 
             foreach ($contents as $k => $contentValue) {
+
+                $applyInspectionObj=$applyInspection->where('id',$contentValue)->where('status',1)->where('is_reset',0)->where('inspection_group_id',0);
+                $res=$applyInspectionObj->first();
+                if(!$res){
+                    DB::rollBack();
+                    return [
+                        'status'=>0,
+                        'message'=>'数据不存在'
+                    ];
+                }
+
                 $params=array();
-
-
                 $params['inspection_group_id']=$inspection_group_id;
-
-
-                $res=$applyInspection->where('id',$contentValue)->where('status',1)->where('is_reset',0)->where('inspection_group_id',0)->update($params);
+                $res=$applyInspectionObj->update($params);
                 if(!$res){
                     DB::rollBack();
 
@@ -203,8 +211,10 @@ class InspectionController extends Controller
         $params['status']=1;
         $params['where']=$where;
         $order_by=$request->input('order_by');
-        if(isset($order_by)){
+        if($order_by){
             $params['order_by']=$order_by;
+        }else{
+            $params['sort_by']=true;
         }
 
         $inspections_group_list=$scheduleService->apply_list_by_address($params);
@@ -212,6 +222,25 @@ class InspectionController extends Controller
         return $inspections_group_list;
 
     }
+
+    //更新验货列表排序id）
+    public function update_inspections_group_sort(UpdateInspectionGroupSortRequest $request,ApplyInspection $applyInspection){
+        $sort_arr=$request->input('sort_arr');
+
+        $res=$applyInspection->update_Batch($sort_arr);
+        if($res===false){
+            return ['status' => 0, 'message' => '更新失败'];
+
+        }else{
+            return ['status' => 1, 'message' => '更新成功'];
+        }
+
+
+    }
+
+
+
+
 
     //
     /**
@@ -249,7 +278,6 @@ class InspectionController extends Controller
         $order_by=$request->input('order_by');
         $where['order_by']=$order_by;
         return $inspectionService->inspection_groups_list($where);
-
     }
 
 
@@ -530,8 +558,7 @@ class InspectionController extends Controller
      */
     public function distribute_inspections(Request $request,InspectionGroup $inspectionGroup,ApplyInspection $applyInspection){
         $user_id=$request->input('user_id');
-        return $user_id[0];
-            $inspection_group_id=$request->input('inspection_group_id');
+        $inspection_group_id=$request->input('inspection_group_id');
         $early_inspection_date=$request->input('early_inspection_date');
 
         if(!$early_inspection_date||!is_array($early_inspection_date)){
@@ -704,15 +731,16 @@ class InspectionController extends Controller
         $inspection_group_id= $request->input('inspection_group_id');
         $name= $request->input('inspection_group_name');
         $res=$inspectionGroup->where('id',$inspection_group_id)->update(array('name'=>$name));
-        if($res){
-            return [
-                'status'=>1,
-                'message'=>'修改组名成功'
-            ];
-        }else{
+        if($res===false){
+
             return [
                 'status'=>0,
                 'message'=>'修改组名失败'
+            ];
+        }else{
+            return [
+                'status'=>1,
+                'message'=>'修改组名成功'
             ];
         }
     }
