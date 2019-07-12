@@ -1070,7 +1070,7 @@ class ScheduleService
                 $apply=$apply->orderBy('apply_inspections.sort','asc')
                     ->paginate(20);
             }else{
-                $apply=$apply->orderBy('apply_inspections.id','asc')
+                $apply=$apply->orderBy('apply_inspections.id','desc')
                     ->paginate(20);
             }
 

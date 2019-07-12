@@ -452,26 +452,26 @@ class InspectionController extends Controller
 
         if($inspection_group_id){
             $res=$applyInspection->where('inspection_group_id',$inspection_group_id)
-                ->update(['status'=>1,'inspection_group_id'=>0]);
+                ->update(['status'=>1,'inspection_group_id'=>0,'probable_inspection_date'=>'']);
 
+            if($res===false){
+                return ['status'=>0,'message'=>'撤销失败'];
 
-            if($res){
+            }else{
                 InspectionGroup::where('id',$inspection_group_id)->delete();
                 return ['status'=>1,'message'=>'撤销成功'];
-            }else{
-                return ['status'=>0,'message'=>'撤销失败'];
             }
         }
 
         if($apply_id){
             $res=$applyInspection->where('id',$apply_id)
-                ->update(['status'=>1,'inspection_group_id'=>0]);
+                ->update(['status'=>1,'inspection_group_id'=>0,'probable_inspection_date'=>'']);
 
-            if($res){
-
-                return ['status'=>1,'message'=>'撤销成功'];
-            }else{
+            if($res===false){
                 return ['status'=>0,'message'=>'撤销失败'];
+
+            }else{
+                return ['status'=>1,'message'=>'撤销成功'];
             }
         }
 
