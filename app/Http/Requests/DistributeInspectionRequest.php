@@ -27,9 +27,9 @@ class DistributeInspectionRequest extends FormRequest
         return [
             //
             'inspection_group_id'         => 'required',
-            'early_inspection_date'         => 'required|array',
-            'early_inspection_date.*.date'         => 'required',
-            'early_inspection_date.*.contract_id'         => 'required',
+            'probable_inspection_date'         => 'required|array',
+            'probable_inspection_date.*.date'         => 'required',
+            'probable_inspection_date.*.apply_id'         => 'required',
         ];
     }
 
@@ -37,10 +37,10 @@ class DistributeInspectionRequest extends FormRequest
     {
         return [
             'inspection_group_id.required'     => '请选择验货数据',
-            'early_inspection_date.required'     => '验货时间不能为空',
-            'early_inspection_date.array'     => '验货时间格式错误',
-            'early_inspection_date.*.contract_id.required'     => '请选择验货数据',
-            'early_inspection_date.*.date.required'     => '请选择验货时间',
+            'probable_inspection_date.required'     => '验货时间不能为空',
+            'probable_inspection_date.array'     => '验货时间格式错误',
+            'probable_inspection_date.*.apply_id.required'     => '请选择验货数据',
+            'probable_inspection_date.*.date.required'     => '请选择验货时间',
         ];
     }
 }

@@ -436,7 +436,7 @@ class InspectionController extends Controller
      *         type="integer",
      *    ),
      *   @SWG\Parameter(
-     *         name="contract_id",
+     *         name="apply_id",
      *         in="query",
      *         description="合同id",
      *         type="integer",
@@ -448,7 +448,7 @@ class InspectionController extends Controller
 
 
         $inspection_group_id=$request->input('inspection_group_id');
-        $contract_id=$request->input('contract_id');
+        $apply_id=$request->input('apply_id');
 
         if($inspection_group_id){
             $res=$applyInspection->where('inspection_group_id',$inspection_group_id)
@@ -463,8 +463,8 @@ class InspectionController extends Controller
             }
         }
 
-        if($contract_id){
-            $res=$applyInspection->where('contract_id',$contract_id)
+        if($apply_id){
+            $res=$applyInspection->where('id',$apply_id)
                 ->update(['status'=>1,'inspection_group_id'=>0]);
 
             if($res){
@@ -560,9 +560,9 @@ class InspectionController extends Controller
     public function distribute_inspections(DistributeInspectionRequest $request,InspectionGroup $inspectionGroup,ApplyInspection $applyInspection){
         $user_id=$request->input('user_id');
         $inspection_group_id=$request->input('inspection_group_id');
-        $early_inspection_date=$request->input('early_inspection_date');
+        $probable_inspection_date=$request->input('probable_inspection_date');
 
-        if(!$early_inspection_date||!is_array($early_inspection_date)){
+        if(!$probable_inspection_date||!is_array($probable_inspection_date)){
             return [
                 'status'=>0,
                 'message'=>'验货时间不能为空'
@@ -585,7 +585,7 @@ class InspectionController extends Controller
             }
 
         }
-        foreach ($early_inspection_date as $i) {
+        foreach ($probable_inspection_date as $i) {
 
             if(!isset($i['date'])){
                 return [
@@ -601,7 +601,7 @@ class InspectionController extends Controller
                     'message'=>'验货时间不能早于现在'
                 ];
             }
-            $contract_id=$i['contract_id'];
+            $apply_id=$i['apply_id'];
 
 
 
@@ -610,9 +610,9 @@ class InspectionController extends Controller
                 ->where('status',1)
                 ->where('is_reset',0)
                 ->where(function ($query){
-                    $query->where('early_inspection_date','0000-00-00 00:00:00')->orWhereNull('early_inspection_date');
+                    $query->where('probable_inspection_date','0000-00-00 00:00:00')->orWhereNull('probable_inspection_date');
                 })
-                ->where('contract_id',$contract_id)->update(array('status'=>2,'early_inspection_date'=>$i['date']));
+                ->where('id',$apply_id)->update(array('status'=>2,'probable_inspection_date'=>$i['date']));
 
             if(!$res){
                 return [
@@ -682,7 +682,7 @@ class InspectionController extends Controller
         //
         $inspection_group_id=$request->input('inspection_group_id');
         $res1=$inspectionGroup->where('id',$inspection_group_id)->update(array('user_id'=>'','desc'=>''));
-        $res2=$applyInspection->where('inspection_group_id',$inspection_group_id)->where('is_reset',0)->where('status',2)->update(array('status'=>1,'early_inspection_date'=>''));
+        $res2=$applyInspection->where('inspection_group_id',$inspection_group_id)->where('is_reset',0)->where('status',2)->update(array('status'=>1,'probable_inspection_date'=>''));
 
         if($res1&&$res2){
             return [
@@ -760,6 +760,44 @@ class InspectionController extends Controller
                 'message'=>'修改组名成功'
             ];
         }
+    }
+
+    //修改预计验货时间
+    public function editProbableInspectionDate(Request $request,ApplyInspection $applyInspection){
+        $date=$request->input('probable_inspection_date');
+        if(strtotime($date)<strtotime(date('Y-m-d',time()))){
+            return [
+                'status'=>0,
+                'message'=>'验货时间不能早于现在'
+            ];
+        }
+
+        $applyInspectionObj=$applyInspection
+            ->where('inspection_group_id','>',0)
+            ->where('status',2)
+            ->where(function ($query){
+                $query->where('probable_inspection_date','neq','0000-00-00 00:00:00')->WhereNull('probable_inspection_date');
+            });
+        $applyInspectionRes=$applyInspectionObj->first();
+        if(!$applyInspectionRes){
+            return [
+                'status'=>0,
+                'message'=>'数据不存在'
+            ];
+        }
+        $res=$applyInspectionObj->update(['probable_inspection_date'=>$date]);
+        if($res===false){
+            return [
+                'status'=>0,
+                'message'=>'修改失败'
+            ];
+        }else{
+            return [
+                'status'=>1,
+                'message'=>'修改成功'
+            ];
+        }
+
     }
 
 

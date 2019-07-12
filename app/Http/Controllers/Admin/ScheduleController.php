@@ -194,10 +194,22 @@ class ScheduleController extends Controller
             $params['order_by']=$order_by;
         }
 
-        $this->scheduleService->inspection_status;
+        $status_desc_arr=$this->scheduleService->inspection_status;
+        foreach ($status_desc_arr  as $k  => $i) {
+            if(in_array($k,$status_arr)){
+                $arr[$k]['status']=$k;
+                $arr[$k]['status_desc']=$i;
+            }
+        }
 
-
-        return $this->scheduleService->apply_list_by_address($params);
+        $res=$this->scheduleService->apply_list_by_address($params);
+        if($res['status']){
+            $newRes['data']=$res['data'];
+            $newRes['status_arr']=array_values($arr);
+            return $newRes;
+        }else{
+            return $res;
+        }
     }
     //
     /**
@@ -234,15 +246,35 @@ class ScheduleController extends Controller
     //获得验货列表
     public function getApplyDepartmentList( Request $request)
     {
-        //return $this->scheduleService->apply_department_list();
+        $status=$request->input('status');
+        $status_arr=array(1,2);
+        if(strlen($status)>0&&in_array($status,$status_arr)){
+            $params['status']=$status;
+        }else{
+            $params['status']=$status_arr;
+        }
 
-        $params['status']=array(1,2);
+
         $order_by=$request->input('order_by');
         if(isset($order_by)){
             $params['order_by']=$order_by;
         }
 
-        return $this->scheduleService->apply_list_by_address($params);
+        $status_desc_arr=$this->scheduleService->inspection_status;
+        foreach ($status_desc_arr  as $k  => $i) {
+            if(in_array($k,$status_arr)){
+                $arr[$k]['status']=$k;
+                $arr[$k]['status_desc']=$i;
+            }
+        }
+        $res=$this->scheduleService->apply_list_by_address($params);
+        if($res['status']){
+            $newRes['data']=$res['data'];
+            $newRes['status_arr']=array_values($arr);
+            return $newRes;
+        }else{
+            return $res;
+        }
     }
 
 
