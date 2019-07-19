@@ -939,7 +939,7 @@ class ScheduleService
 
 
 
-        try {
+//        try {
             $count=ApplyInspection::where('contract_id',$contract_id)->where('is_reset',0)->where(function($query){
 
                 $query->where('status',0)
@@ -947,11 +947,29 @@ class ScheduleService
             })->get()->count();
 
             if($count>0){return ['status' => 0, 'message' => '申请失败,还存在待处理的任务']; }
+
+
+        $res=ApplyInspection::select('apply_inspection_no',DB::raw("date_format(created_at,'%Y%m') as create_at"))->orderBy('id','desc')->limit(1)->first();
+        if(isset($res['apply_inspection_no'])&&$res['create_at']==date('Ym')){
+            $str=substr($res['apply_inspection_no'],-4);
+            $str=intval($str)+1;
+        }else{
+            $str='0001';
+        }
+        if(strlen($str)<4){
+            $str=str_pad($str,4,0,STR_PAD_LEFT);
+        }
+
+        $apply_inspection_no='YH-'.date('ym',time()).$str;
+
             $apply = new ApplyInspection();
             //保存基础信息
             foreach ($data as $key => $datum) {
                 $apply->$key = $datum;
             }
+           $apply->apply_inspection_no=$apply_inspection_no;
+           $apply->estimated_loading_time=$estimated_loading_time;
+           $apply->is_new_factory=$is_new_factory;
         //上传图片，带有id命名的图片名字
             if($apply->save()) {
                 $new_photo=[];
@@ -988,20 +1006,26 @@ class ScheduleService
             {
                 $c['photo']=$new_photo;
             }
+
+
+
+
+
             $ApplyInspection=ApplyInspection::find($apply->id);
             $ApplyInspection->sku_num=json_encode($replace_content_photo);
-            $ApplyInspection->estimated_loading_time=$estimated_loading_time;
-            $ApplyInspection->is_new_factory=$is_new_factory;
-            $apply_inspection_no='YH-'.date('ym',time()).mt_rand(999, 9999);
-            $ApplyInspection->apply_inspection_no=$apply_inspection_no;
+
+
+
+
+
 
 
             $ApplyInspection->save();
             return ['status' => 1, 'message' => '申请成功'];
-        }catch (\Exception $e)
-        {
-            return ['status' => 0, 'message' => '申请失败'];
-        }
+//        }catch (\Exception $e)
+//        {
+//            return ['status' => 0, 'message' => '申请失败'];
+//        }
     }
 
 
