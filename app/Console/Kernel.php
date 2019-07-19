@@ -30,7 +30,8 @@ class Kernel extends ConsoleKernel
 
        // $schedule->command('schedule:email')->everyMinute()->withoutOverlapping();
         //$schedule->command('set_track_all')->everyMinute()->withoutOverlapping();
-        $schedule->command('get_manage_list')->everyMinute()->withoutOverlapping();
+        //$schedule->command('get_manage_list')->everyMinute()->withoutOverlapping();
+        $schedule->command('get_sku_finsh_day')->everyMinute()->withoutOverlapping();
     }
 
     /**

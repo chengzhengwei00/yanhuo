@@ -3,6 +3,7 @@
 namespace App\Http\Service;
 
 use App\Http\Model\ManageList;
+use App\Http\Model\SkuFinishDay;
 use App\Http\Model\User;
 use Illuminate\Http\Request;
 use App\Http\Model\Contract;
@@ -11,6 +12,7 @@ use App\Http\Model\Standard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Exception;
+
 
 class ContractService
 {
@@ -196,6 +198,60 @@ class ContractService
         return  ['data'=>$sku_standard,'sku_list'=>$sku_list,'contract_info'=>$json_data];
     }
 
+
+    //解析sku数据
+    public function analysis_all($id)
+    {
+        $contract_id=$id;
+        $contract=Contract::where('id',$contract_id)->first();
+        $json_data=json_decode($contract->json_data);
+        $Standard=isset($json_data->SkuInfos)?$json_data->SkuInfos:[];
+        $sku_standard=[];//sku详细数据
+        $sku_list=[];//sku列表
+
+        foreach((array)$Standard as $item)
+        {
+
+            $description=$item;
+            $ProductCode=array();
+            if($description->InfoData){
+                $sku_sys=$description->InfoData;
+                foreach($sku_sys->pictures as $pic)
+                {
+                    $sku_sys->pic[]=$pic->PictureAddress;
+                }
+
+                unset($sku_sys->pictures);
+                $description->InfoData->contract_id=$contract_id;//添加合同id
+                //$sku_list[]=array('name'=>$sku_sys->ChineseName,'sku'=>$sku_sys->ProductCode);
+                $ProductCode=$sku_sys->ProductCode;
+                $sku_standard[$ProductCode]['sku_list'][] = array('name'=>$sku_sys->ChineseName,'sku'=>$sku_sys->ProductCode);
+
+            }
+            if(isset($ProductCode)){
+                if(!empty($description->accessory)) {
+                    $sku_standard[$ProductCode]['isAccessory'] = true;
+
+                }else{
+                    $sku_standard[$ProductCode]['isAccessory']=false;
+                }
+
+
+                if($description->Data) {
+
+                    $sku_standard[$ProductCode]['sku_other'] = true;
+
+                }else{
+                    $sku_standard[$ProductCode]['sku_other']=false;
+                }
+            }
+
+
+
+        }
+        return  ['sku_list'=>$sku_standard,'ProviceName'=>$json_data->ProviceName,'CityName'=>$json_data->CityName];
+    }
+
     public function sku_list($id)
     {
         $data=$this->analysis($id);
@@ -249,6 +305,122 @@ class ContractService
         }
 
     }
+
+
+    public function get_days_token(){
+        $res = curl('http://openapi.can-erp.com/passport_open/login',
+            array('client_id' => 'f9d7ddb158045beed1f8925d9667054b', 'client_secret' => 'b069b47c9564397af0e04f46b954d0cd','grant_type'=>'client_credentials'),
+            0);
+        $res=json_decode($res,true);
+        if(isset($res['sub_code'])&&$res['sub_code']&&$res['data']){
+            $data=$res['data'];
+            return $data['access_token'];
+        }
+    }
+
+
+
+
+    //获取指定sku 海上天数
+    public function get_days($sku=''){
+
+
+        //return $idMax=UserSchedule::groupBy(DB::raw("contract_id"))->select('id','user_id')->get();
+
+
+        try{
+
+                $access_token=$this->get_days_token();
+                $header[] = "token: $access_token";
+                $params=array('sku' => $sku);
+                $res = curl('http://openapi.can-erp.com/sku/sea_day',
+                    $params,
+                    0,0,$header);
+                $res=json_decode($res,true);
+                if(!$res['sub_code']){
+                    return $res['data'];
+                }
+
+
+
+
+        }catch(Exception $e){
+            return $e->getMessage();
+        }
+
+    }
+
+    public function get_days_two($sku=''){
+        try{
+            $access_token=$this->get_days_token();
+            $header[] = "token: $access_token";
+
+            $dtEnd=date('Y-m-d',time());
+            $dtStart=date('Y-m-d',time()-24*3600*60);
+
+            $params=array('sku' => $sku,'dtStart'=>$dtStart,'dtEnd'=>$dtEnd);
+
+            $res = curl('http://openapi.can-erp.com/sku/advance_day',
+                $params,
+                0,0,$header);
+            $res=json_decode($res,true);
+            if(!$res['sub_code']){
+                return $res['data'];
+            }
+
+
+        }catch(Exception $e){
+            return $e->getMessage();
+        }
+    }
+
+    public function store_sku_finish_day(){
+//        $res=Standard::select('sku')->distinct()->get();
+//        foreach ($res as $i) {
+//            $sea_day=$this->get_days($i['sku']);
+//
+//            $advance_day=$this->get_days_two($i['sku']);
+//
+//            SkuFinishDay::updateOrCreate(['sku'=>$i['sku']],['sea_day'=>$sea_day,'advance_day'=>$advance_day]);
+//        }
+
+          $res=Contract::where('status_code','03')->orWhere('status_code','08')->select('plan_delivery_time','id')->get();
+          $arrs=array();
+          foreach ($res as $i) {
+              $plan_delivery_day=DifferDay($i->plan_delivery_time,time());
+              $sku_arr=Standard::where('contract_id',$i['id'])->select('sku','contract_id')->get();
+
+              $a=null;
+              $arr=array();
+              foreach ($sku_arr as $i2) {
+
+                  $sku_finish_days=SkuFinishDay::where('sku',$i2['sku'])->first();
+                  //$arrs[]=$sku_finish_days;
+                  if($sku_finish_days){
+                      $s=$sku_finish_days['advance_day']-$sku_finish_days['sea_day']-$plan_delivery_day;
+                      SkuFinishDay::where('sku',$i2['sku'])->update(['finish_day_away'=>$s]);
+                      if($a==null){
+                          $a=$s;
+                      }elseif($a>$s){
+                          $a=$s;
+                      }
+                      $arr[]=$s;
+                      $arrs[$i2['contract_id']]=$arr;
+
+                  }
+
+
+
+              }
+              Contract::where('id',$i['id'])->update(['min_finish_day_away'=>$a]);
+
+          }
+          return $arrs;
+
+
+
+    }
+
 
 
 }

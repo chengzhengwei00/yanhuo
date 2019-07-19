@@ -26,8 +26,10 @@ class ScheduleService
     public $inspection_status=[
         '未提交质检部',//未申请
         '已提交质检部', //已申请
-        '已分配验货'//已分配
+        '已分配验货',//已分配
+        '已确认任务'//已分配
     ];
+
 
     public function __construct(Request $request,Response $response)
     {
@@ -908,6 +910,9 @@ class ScheduleService
         $contract_id = $this->request->input('contract_id');
         $content = $this->request->input('content');
         $inspection_date = $this->request->input('inspection_date');
+        $estimated_loading_time = $this->request->input('estimated_loading_time');
+        $is_new_factory = $this->request->input('is_new_factory');
+
         $file_service=new FileService($this->request);
         $replace_content_photo=[];
 
@@ -985,7 +990,10 @@ class ScheduleService
             }
             $ApplyInspection=ApplyInspection::find($apply->id);
             $ApplyInspection->sku_num=json_encode($replace_content_photo);
-
+            $ApplyInspection->estimated_loading_time=$estimated_loading_time;
+            $ApplyInspection->is_new_factory=$is_new_factory;
+            $apply_inspection_no='YH-'.date('ym',time()).mt_rand(999, 9999);
+            $ApplyInspection->apply_inspection_no=$apply_inspection_no;
 
 
             $ApplyInspection->save();
@@ -1019,6 +1027,15 @@ class ScheduleService
     //按地址排序获得验货数据
     public function apply_list_by_address($params=array())
     {
+
+
+
+        $apply=$this->get_apply_list_params($params);
+        $apply=$this->deal_apply_list_address($apply);
+        return ['status' => 1, 'message' => '获取成功','data'=>$apply];
+    }
+
+    protected function get_apply_list_params($params=array()){
         if(!isset($params['status'])){
             return ['status' => 0, 'message' => '获取失败'];
         }else{
@@ -1031,6 +1048,31 @@ class ScheduleService
         if(isset($params['order_by'])&&in_array($params['order_by'],$order_by_arr)){
             $order_by=$params['order_by'];
         }
+
+
+
+
+        $keywords=$this->request->input('keywords');
+        $type=$this->request->input('type');
+
+
+        if ($type=='contract_no' && $keywords!='') {
+
+            $params_search[]=array('contracts.contract_no','like','%'.$keywords.'%');
+        }
+        if ($type=='factory_simple_address' && $keywords!='') {
+
+            $params_search[]=array('contracts.factory_simple_address','like','%'.$keywords.'%');
+        }
+        if ($type=='manufacturer' && $keywords!='') {
+
+            $params_search[]=array('contracts.manufacturer','like','%'.$keywords.'%');
+        }
+
+
+
+
+
 
 
 
@@ -1059,32 +1101,83 @@ class ScheduleService
         }
 
 
-
+        if(isset($params_search)){
+            $apply=$apply->where($params_search);
+        }
 
         if(isset($order_by)){
             $apply=$apply->orderBy(DB::raw("convert(factory_simple_address using gbk)"),$order_by)
-                ->paginate(20);
+                ->paginate(100);
         }else{
 
             if(isset($params['sort_by'])&&$params['sort_by']){
                 $apply=$apply->orderBy('apply_inspections.sort','asc')
-                    ->paginate(20);
+                    ->paginate(100);
             }else{
                 $apply=$apply->orderBy('apply_inspections.id','desc')
-                    ->paginate(20);
+                    ->paginate(100);
             }
 
 
         }
 
-
-
-
-
-
-        $apply=$this->deal_apply_list_address($apply);
-        return ['status' => 1, 'message' => '获取成功','data'=>$apply];
+        return $apply;
     }
+
+
+    public function deal_apply_list_address_ss($params){
+        $apply=$this->get_apply_list_params($params);
+
+
+
+        $complete_status=array('1'=>'产品生产未完成，包装未完成','2'=>'产品生产完成，包装完成30%以下','3'=>'产品生产完成，包装完成30%-80%','4'=>'产品生产完成，包装完成80%以上');
+        foreach($apply as $item)
+        {
+            $item->quantity=count(json_decode($item->sku_num));
+            $item->new_quantity=0;
+
+
+            $contractService= new ContractService($this->request);
+
+
+            $sku_info= $contractService->analysis_all($item->contract_id);
+            $ProviceName=$sku_info['ProviceName'];
+            $CityName=$sku_info['CityName'];
+            $item->sku_list=$sku_info['sku_list'];
+            $item->ProviceName=$ProviceName;
+            $item->CityName=$CityName;
+            $item->total_quantity=count($sku_info['sku_list']);
+            $new_sku=[];
+            foreach(json_decode($item->sku_num) as $sku)
+            {
+                $sku->complete=isset($complete_status[$sku->complete])?$complete_status[$sku->complete]:'';
+                if($sku->isNew==1){
+                    $item->new_quantity+=1;
+                }
+                $sku->pic=isset($sku_info['data'][$sku->sku])&&isset($sku_info['data'][$sku->sku]['sku_sys']->pic)?current($sku_info['data'][$sku->sku]['sku_sys']->pic):'';
+                $new_sku[]=$sku;
+            }
+            $item->sku_num=$new_sku;
+            $item->status_desc=$this->inspection_status[$item->status];
+
+            //获取跟单人名称
+            $idMax=UserSchedule::where('contract_id',$item->contract_id)->with(['user'=>function($query){
+                $query->select('id','name');
+            }])
+                ->first();
+
+            $item->schedule_name=$idMax;
+            unset($item->contract);
+
+        }
+
+        return $apply;
+
+    }
+
+
+
+
 
     public function deal_apply_list_address($apply_inspection_data){
         $complete_status=array('1'=>'产品生产未完成，包装未完成','2'=>'产品生产完成，包装完成30%以下','3'=>'产品生产完成，包装完成30%-80%','4'=>'产品生产完成，包装完成80%以上');
@@ -1095,6 +1188,8 @@ class ScheduleService
 
 
             $contractService= new ContractService($this->request);
+
+
             $sku_info= $contractService->analysis($item->contract_id);
             $address=$sku_info['contract_info'];
             $item->ProviceName=$address->ProviceName;

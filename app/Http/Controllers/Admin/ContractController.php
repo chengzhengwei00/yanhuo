@@ -125,5 +125,13 @@ class ContractController extends Controller
         return $contractService->get_manage_list();
     }
 
+    public function get_days(ContractService $contractService){
+        return $contractService->get_days();
+    }
+
+    public function store_sku_finish_day(ContractService $contractService){
+        return $contractService->store_sku_finish_day();
+    }
+
 
 }

@@ -22,12 +22,17 @@ Route::group(['prefix' => 'v1'], function(){
 	Route::get('contracts/get-contracts-for-api', 'Admin\ContractController@getContractsForApi');//获取验货标准接口
     Route::get('contracts/update-contracts-status', 'Admin\ContractController@geUpdateContractStatus');//获取验货标准接口
     Route::get('contract/get_manage_list', 'Admin\ContractController@get_manage_list');
+    Route::get('contract/get_days', 'Admin\ContractController@get_days');
+    Route::get('contract/store_sku_finish_day', 'Admin\ContractController@store_sku_finish_day');
+
+
+
 
     Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LogViewerController@index');
 
 });
 
-Route::group(['prefix' => 'v1','middleware' => 'auth:api'], function(){
+Route::group(['prefix' => 'v1','middleware' => ['auth:api']], function(){
 
     //用户类
     Route::get('logout', 'Auth\LoginController@logout')->name('auth.login.logout');//注销
@@ -124,6 +129,9 @@ Route::group(['prefix' => 'v1','middleware' => 'auth:api'], function(){
     Route::post('inspection/editInspectionGroupName', 'Admin\InspectionController@editInspectionGroupName');//修改组名
     Route::post('inspection/update_inspections_group_sort', 'Admin\InspectionController@update_inspections_group_sort');//更新验货列表排序id
 
+    Route::get('inspection/get_inspection_task_data', 'Admin\InspectionController@getInspectionTaskData');//获得验货人需要的验货数据
+
+    Route::get('inspection/confirm_inspection', 'Admin\InspectionController@confirm_inspection');//确认已分配任务
 
 
     Route::get('inspection/sendemail', 'Admin\InspectionController@sendemail');

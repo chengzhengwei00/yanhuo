@@ -184,7 +184,7 @@ class ScheduleController extends Controller
         if(strlen($status)>0&&in_array($status,$status_arr)){
             $params['status']=$status;
         }else{
-            $params['status']=array(0,1,2);
+            $params['status']=array(0,1,2,3);
         }
 
 
@@ -201,6 +201,10 @@ class ScheduleController extends Controller
                 $arr[$k]['status_desc']=$i;
             }
         }
+
+
+
+
 
         $res=$this->scheduleService->apply_list_by_address($params);
         if($res['status']){
@@ -247,7 +251,7 @@ class ScheduleController extends Controller
     public function getApplyDepartmentList( Request $request)
     {
         $status=$request->input('status');
-        $status_arr=array(1,2);
+        $status_arr=array(1,2,3);
         if(strlen($status)>0&&in_array($status,$status_arr)){
             $params['status']=$status;
         }else{
@@ -267,6 +271,12 @@ class ScheduleController extends Controller
                 $arr[$k]['status_desc']=$i;
             }
         }
+
+
+
+
+
+
         $res=$this->scheduleService->apply_list_by_address($params);
         if($res['status']){
             $newRes['data']=$res['data'];

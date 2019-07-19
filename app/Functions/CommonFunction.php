@@ -58,7 +58,7 @@ function get_tree_child($data, $fid=0,$pid='pid')
 
 }
 //curl请求
-function curl($url, $params = false, $ispost = 0, $https = 0)
+function curl($url, $params = false, $ispost = 0, $https = 0,$header=[])
 {
     $httpInfo = array();
     $ch = curl_init();
@@ -85,7 +85,13 @@ function curl($url, $params = false, $ispost = 0, $https = 0)
             curl_setopt($ch, CURLOPT_URL, $url);
         }
     }
+    if($header){
+        //设置头文件的信息作为数据流输出
+        curl_setopt($ch, CURLOPT_HEADER,0);
+        //设置请求头
+        curl_setopt($ch, CURLOPT_HTTPHEADER,$header);
 
+    }
     $response = curl_exec($ch);
 
     if ($response === FALSE) {

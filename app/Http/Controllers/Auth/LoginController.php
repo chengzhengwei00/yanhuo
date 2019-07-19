@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Service\PermissionsService;
 use App\Http\Model\ManageList;
 
+
 class LoginController extends Controller
 {
     /*
@@ -53,11 +54,12 @@ class LoginController extends Controller
     public function login(Request $request,PermissionsService $permissionsService)
     {
         $this->validateLogin($request);
-//        if($request->input('company_no')=='' || $request->input('password')=='')
-//        {
-//            return response()->json(['status'=>'0','message'=>'用户名或密码不能为空']);
-//        }
+
         if ($this->attemptLogin($request)) {
+
+
+
+
             $user = $this->guard()->user();
             $user->generateToken();
             $user_permission=$permissionsService->show_user_role_permission_by_id($user->id);
