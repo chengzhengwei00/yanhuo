@@ -85,8 +85,9 @@ class InspectionService
 
 
         $params=array('status'=>$status);
-        $user_id=array();
+
         foreach ($inspection_group_datas as $item) {
+            $user_id=array();
             if($item->inspection_group_user){
                 $inspection_group_users=$item->inspection_group_user;
 

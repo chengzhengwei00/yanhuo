@@ -1004,7 +1004,7 @@ class InspectionController extends Controller
             ->where('is_reset',0)
             ->where('probable_inspection_date_start','!=','0000-00-00 00:00:00')
             ->whereNotNull('probable_inspection_date_start');
-        if(!$applyInspectionObj->first()){
+        if(!count($applyInspectionObj->get())){
             return [
                 'status'=>0,
                 'message'=>'数据不存在'
