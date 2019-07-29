@@ -8,7 +8,7 @@ class InspectionGroup extends Model
 {
     protected $table='inspection_groups';
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name','inspection_group_no'];
 
 
 

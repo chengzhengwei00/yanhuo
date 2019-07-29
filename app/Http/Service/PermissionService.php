@@ -350,13 +350,17 @@ class PermissionsService
     {
         if(User_has_permission::where('user_id',$user_id)->get()->count()>0)
         {
-            $array=[];
+
+
+            $arr=array();
             $user_has_permission=User_has_permission::where('user_id',$user_id)->get();
+
             foreach($user_has_permission as $permission)
             {
-                $array[]= $permission->permission;
+               $arr[]=$permission->Permission;
             }
-            return ['status'=>'1','message'=>'展示成功','data'=>$array];
+
+            return ['status'=>'1','message'=>'展示成功','data'=>$arr];
         }
         if(UserRole::where('user_id',$user_id)->get()->count()>0)
         {

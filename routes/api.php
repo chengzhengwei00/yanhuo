@@ -132,6 +132,8 @@ Route::group(['prefix' => 'v1','middleware' => ['auth:api']], function(){
     Route::get('inspection/get_inspection_task_data', 'Admin\InspectionController@getInspectionTaskData');//获得验货人需要的验货数据
 
     Route::get('inspection/confirm_inspection', 'Admin\InspectionController@confirm_inspection');//确认已分配任务
+    Route::post('inspection/add_inspection_task_data', 'Admin\InspectionController@add_inspection_task_data');//提交验货数据
+
 
 
     Route::get('inspection/sendemail', 'Admin\InspectionController@sendemail');

@@ -26,8 +26,9 @@ class ScheduleService
     public $inspection_status=[
         '未提交质检部',//未申请
         '已提交质检部', //已申请
-        '已分配验货',//已分配
-        '已确认任务'//已分配
+        '已分配人员',//已分配
+        '已确认任务',//已分配
+        '已联系工厂'
     ];
 
 
@@ -939,7 +940,7 @@ class ScheduleService
 
 
 
-//        try {
+        try {
             $count=ApplyInspection::where('contract_id',$contract_id)->where('is_reset',0)->where(function($query){
 
                 $query->where('status',0)
@@ -949,25 +950,25 @@ class ScheduleService
             if($count>0){return ['status' => 0, 'message' => '申请失败,还存在待处理的任务']; }
 
 
-        $res=ApplyInspection::select('apply_inspection_no',DB::raw("date_format(created_at,'%Y%m') as create_at"))->orderBy('id','desc')->limit(1)->first();
-        if(isset($res['apply_inspection_no'])&&$res['create_at']==date('Ym')){
-            $str=substr($res['apply_inspection_no'],-4);
-            $str=intval($str)+1;
-        }else{
-            $str='0001';
-        }
-        if(strlen($str)<4){
-            $str=str_pad($str,4,0,STR_PAD_LEFT);
-        }
-
-        $apply_inspection_no='YH-'.date('ym',time()).$str;
+ //       $res=ApplyInspection::select('apply_inspection_no',DB::raw("date_format(created_at,'%Y%m') as create_at"))->orderBy('id','desc')->limit(1)->first();
+//        if(isset($res['apply_inspection_no'])&&$res['create_at']==date('Ym')){
+//            $str=substr($res['apply_inspection_no'],-4);
+//            $str=intval($str)+1;
+//        }else{
+//            $str='0001';
+//        }
+//        if(strlen($str)<4){
+//            $str=str_pad($str,4,0,STR_PAD_LEFT);
+//        }
+//
+//        $apply_inspection_no='YH-'.date('ym',time()).$str;
 
             $apply = new ApplyInspection();
             //保存基础信息
             foreach ($data as $key => $datum) {
                 $apply->$key = $datum;
             }
-           $apply->apply_inspection_no=$apply_inspection_no;
+           //$apply->apply_inspection_no=$apply_inspection_no;
            $apply->estimated_loading_time=$estimated_loading_time;
            $apply->is_new_factory=$is_new_factory;
         //上传图片，带有id命名的图片名字
@@ -1022,10 +1023,10 @@ class ScheduleService
 
             $ApplyInspection->save();
             return ['status' => 1, 'message' => '申请成功'];
-//        }catch (\Exception $e)
-//        {
-//            return ['status' => 0, 'message' => '申请失败'];
-//        }
+        }catch (\Exception $e)
+        {
+            return ['status' => 0, 'message' => '申请失败'];
+        }
     }
 
 
@@ -1113,14 +1114,14 @@ class ScheduleService
         if(isset($params['where'])&&is_array($params['where'])){
             $where=$params['where'];
             $apply=$apply->where($where)
-                ->select('users.name as apply_name','apply_inspections.*','contracts.manufacturer as factory_name','contracts.manufacturer_address as factory_address','contracts.contract_no','contracts.create_user as buyer_user','contracts.factory_simple_address');
+                ->select('users.name as apply_name','apply_inspections.*','contracts.manufacturer as factory_name','contracts.manufacturer_address as factory_address','contracts.contract_no','contracts.create_user as buyer_user','contracts.factory_simple_address','contracts.factory_contacts','contracts.factory_email');
 
 
 
         }else{
 
             $apply=$apply
-                ->select('users.name as apply_name','apply_inspections.*','contracts.manufacturer as factory_name','contracts.manufacturer_address as factory_address','contracts.contract_no','contracts.create_user as buyer_user','contracts.factory_simple_address');
+                ->select('users.name as apply_name','apply_inspections.*','contracts.manufacturer as factory_name','contracts.manufacturer_address as factory_address','contracts.contract_no','contracts.create_user as buyer_user','contracts.factory_simple_address','contracts.factory_contacts','contracts.factory_email');
 
         }
 

@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Model\ApplyInspection;
 use App\Http\Model\InspectionGroup;
 use App\Http\Model\InspectionGroupsUser;
+use App\Http\Model\InspectionTaskPre;
 use App\Http\Service\ScheduleService;
 use App\Http\Service\UserService;
 use Exception;
@@ -94,7 +95,7 @@ class InspectionController extends Controller
      *   ),
      * )
      */
-    public function distribute_groups(ApplyInspectionRequest $request, InspectionGroup $inspectionGroup,ApplyInspection $applyInspection){
+    public function distribute_groups(InspectionService $inspection_service,ApplyInspectionRequest $request, InspectionGroup $inspectionGroup,ApplyInspection $applyInspection){
 
 
 
@@ -104,7 +105,9 @@ class InspectionController extends Controller
         DB::beginTransaction();
 
         try{
-            $res=$inspectionGroup->create(['name'=>$inspection_group_name]);
+            $inspection_group_no=$inspection_service->generate_inspection_group_no();
+
+            $res=$inspectionGroup->create(['name'=>$inspection_group_name,'inspection_group_no'=>$inspection_group_no]);
 
             if(!$res){
                 DB::rollBack();
@@ -131,6 +134,8 @@ class InspectionController extends Controller
 
                 $params=array();
                 $params['inspection_group_id']=$inspection_group_id;
+                $k++;
+                $params['apply_inspection_no']=$inspection_group_no.'-'.$k;
                 $res=$applyInspectionObj->update($params);
                 if(!$res){
                     DB::rollBack();
@@ -373,6 +378,20 @@ class InspectionController extends Controller
      */
     public function select_distributed_list(Request $request,InspectionService $inspectionService){
         $where['status']=2;
+        $order_by=$request->input('order_by');
+        $where['order_by']=$order_by;
+
+
+
+
+
+        return $inspectionService->inspection_groups_list($where);
+    }
+
+
+    //已确认任务列表
+    public function confirmed_inspection_task(Request $request,InspectionService $inspectionService){
+        $where['status']=3;
         $order_by=$request->input('order_by');
         $where['order_by']=$order_by;
 
@@ -783,6 +802,9 @@ class InspectionController extends Controller
         }
 
     }
+
+
+
     
     
     //
@@ -885,6 +907,54 @@ class InspectionController extends Controller
         }
 
     }
+
+
+    //验货任务预处理
+    public function preInspectionTask(Request $request,InspectionTaskPre $inspectionTaskPre,ApplyInspection $applyInspection,InspectionService $inspectionService){
+        $is_contacked_factory=$request->input('is_contacked_factory');
+        $is_bought_ticket=$request->input('is_bought_ticket');
+        $apply_inspection_id=$request->input('apply_id');
+        $user=Auth::user();
+        $user_id=$user->id;
+        $is_has_promission=$inspectionService->get_inspection_user_promission($apply_inspection_id,$inspection_group_id='',$user_id);
+        if(!$is_has_promission){
+            return [
+                'status'=>0,
+                'message'=>'该用户不能对此进行验货'
+            ];
+        }
+
+        $is_existed=$inspectionTaskPre
+            ->where('is_contacked_factory',$is_contacked_factory)
+            ->where('is_bought_ticket',$is_bought_ticket)
+            ->where('apply_inspection_id',$apply_inspection_id)
+            ->first();
+        if($is_existed){
+            return [
+                'status'=>0,
+                'message'=>'该操作已经完成'
+            ];
+        }
+
+        $res=$inspectionTaskPre->create([
+            'apply_inspection_id'=>$apply_inspection_id,
+            'is_contacked_factory'=>$is_contacked_factory,
+            'is_bought_ticket'=>$is_bought_ticket,
+            'user_id'=>$user_id
+        ]);
+        $applyInspection->where('id',$apply_inspection_id)->where('status',3)->update(['status'=>4]);
+
+
+        if($res){
+            return [
+                'status'=>1,
+                'message'=>'操作成功'
+            ];
+        }
+
+    }
+
+
 
 
     //获得验货人需要的验货数据
@@ -1024,6 +1094,16 @@ class InspectionController extends Controller
         }
 
     }
+
+
+    //提交验货数据
+    public function add_inspection_task_data(InspectionService $inspection_service){
+        return $inspection_service->upload_inspection_task_img();
+
+    }
+
+
+
 
 
 
